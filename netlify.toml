@@ -12,6 +12,8 @@
   # Use pnpm as package manager
   NPM_FLAGS = "--version" # This forces Netlify to respect package manager
   PNPM_VERSION = "10.14.0"
+  # Allow Supabase environment variables to be used (these are expected to be public)
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL,SUPABASE_KEY"
 
 # Redirect rules for SPA routing
 [[redirects]]

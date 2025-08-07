@@ -15,13 +15,6 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
-
-  runtimeConfig: {
-    public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY
-    }
-  },
   devServer: {
     port: 4000,
     host: '0.0.0.0'
