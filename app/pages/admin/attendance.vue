@@ -144,7 +144,7 @@
             </span>
           </h2>
           <div class="overflow-x-auto w-full">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-[600px] divide-y divide-gray-200">
               <thead class="bg-gray-100 sticky-header">
                 <tr>
                   <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">No.</th>

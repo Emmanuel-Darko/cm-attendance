@@ -8,7 +8,15 @@
       <img :src="qrUrl" alt="QR Code" class="rounded shadow-lg w-40 h-40 object-contain border border-gray-200 bg-white p-2" />
     </div>
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow p-8">
-      <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Kids Records</h1>
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Kids Records</h1>
+        <button
+          @click="openModalForAdd"
+          class="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow hover:bg-blue-700 transition"
+        >
+          Add New Kid
+        </button>
+      </div>
       <input
         v-model="search"
         type="text"
@@ -74,56 +82,83 @@
           </table>
         </div>
       </div>
+      <!-- Add/Edit Kid Modal Trigger Button -->
       <div class="mt-10">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">Add New Kid</h2>
-        <form @submit.prevent="isEditing ? editKid(selectedRecord as string) : addKid()" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <input
-            v-model="name"
-            placeholder="Name"
-            class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-          <input
-            v-model="age"
-            type="number"
-            placeholder="Age"
-            class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-          <select
-            v-model="gender"
-            class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          >
-            <option disabled value="">Select Gender</option>
-            <option>Male</option>
-            <option>Female</option>
-          </select>
-          <input
-            v-model="gName"
-            placeholder="Guardian name"
-            class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-          <input
-            v-model="gContact"
-            placeholder="Guardian contact"
-            class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-          <button
-            type="submit"
-            :class="[
-              'rounded px-4 py-2 font-semibold transition',
-              (!name || !age || !gender)
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            ]"
-            :disabled="!name || !age || !gender"
-          >
-            {{ isEditing ? 'Edit Kid' : 'Add Kid' }}
-          </button>
-        </form>
         <p 
-            class="mt-2 font-medium min-h-[1.5em]"
-            :class="isErrorMessage ? 'text-red-600' : 'text-green-600'"
+          class="mt-2 font-medium min-h-[1.5em]"
+          :class="isErrorMessage ? 'text-red-600' : 'text-green-600'"
         >{{ message }}</p>
       </div>
+
+      <!-- Modal Overlay -->
+      <transition name="fade">
+        <div
+          v-if="showModal"
+          class="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40"
+        >
+          <!-- Modal Content -->
+          <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-8 relative z-50">
+            <button
+              @click="closeModal"
+              class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 class="text-xl font-semibold mb-6 text-gray-700">
+              {{ isEditing ? 'Edit Kid' : 'Add New Kid' }}
+            </h2>
+            <form @submit.prevent="isEditing ? editKid(selectedRecord as string) : addKid()" class="grid grid-cols-1 gap-4">
+              <input
+                v-model="name"
+                placeholder="Name"
+                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                autocomplete="off"
+              />
+              <input
+                v-model="age"
+                type="number"
+                placeholder="Age"
+                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                min="0"
+                autocomplete="off"
+              />
+              <select
+                v-model="gender"
+                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                <option disabled value="">Select Gender</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+              <input
+                v-model="gName"
+                placeholder="Guardian name"
+                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                autocomplete="off"
+              />
+              <input
+                v-model="gContact"
+                placeholder="Guardian contact"
+                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                autocomplete="off"
+              />
+              <button
+                type="submit"
+                :class="[
+                  'rounded px-4 py-2 font-semibold transition',
+                  (!name || !age || !gender)
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                ]"
+                :disabled="!name || !age || !gender"
+              >
+                {{ isEditing ? 'Edit Kid' : 'Add Kid' }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -139,6 +174,7 @@
     const error = ref<any>(null)
     const search = ref('')
     const isEditing = ref(false)
+    const showModal = ref(false)
 
     const filtered = computed(() =>
         records.value.filter(a =>
@@ -166,6 +202,7 @@
         guardian_contact?: string
     }) => {
         isEditing.value = true
+        showModal.value = true
 
         name.value = item.full_name
         age.value = item.age.toString()
@@ -182,6 +219,22 @@
     }
 
     const copyId = (id: string) => navigator.clipboard.writeText(id)
+
+    const openModalForAdd = () => showModal.value = true
+
+    const closeModal = () => {
+      showModal.value=false
+
+      if(isEditing.value) {
+        isEditing.value = false
+        name.value = ''
+        age.value = ''
+        gender.value = ''
+        gName.value = ''
+        gContact.value = ''
+        selectedRecord.value = ''
+      }
+    }
 
     onMounted(async () => {
         try {
