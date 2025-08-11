@@ -4,9 +4,13 @@
       <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
       Back
     </NuxtLink>
-    <div class="scanner-container">
+    <div
+      class="scanner-container flex flex-col items-center justify-center"
+    >
       <h2>📸 QR Check-In</h2>
-      <QrScanner @scan="handleScan" />
+      <div class="w-full flex justify-center">
+        <QrScanner @scan="handleScan" />
+      </div>
       <p v-if="log">{{ log }}</p>
       <p v-if="message">{{ message }}</p>
     </div>

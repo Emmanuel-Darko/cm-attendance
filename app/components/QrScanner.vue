@@ -44,7 +44,7 @@ const videoElement = ref<HTMLVideoElement>()
   , hasFlash = ref(false)
   , dragClasses = ref("")
   , cams = ref<QrScanner.Camera[]>()
-  , activeCamId = ref("");
+  , activeCamId = ref<any>("");
 let qrScanner: QrScanner;
 
 watch(activeCamId, (id) => qrScanner.setCamera(id))
@@ -71,7 +71,9 @@ onMounted(async () => {
       await qrScanner.start();
 
       hasFlash.value = await qrScanner.hasFlash();
-      activeCamId.value = cams.value[cams.value.length - 1].id;
+      if (cams.value && cams.value.length > 0) {
+        activeCamId.value = cams.value[cams.value.length - 1]?.id;
+      }
     } catch (error: any) {
       decodeError(error instanceof Error ? error : error);
     }
