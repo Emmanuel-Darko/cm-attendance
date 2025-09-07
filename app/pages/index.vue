@@ -3,7 +3,7 @@
       class="min-h-screen py-10"
       style="
         background:
-          url('https://raw.githubusercontent.com/Emmanuel-Darko/images/main/kids.png') no-repeat center bottom,
+          url('https://raw.githubusercontent.com/Emmanuel-Darko/images/main/kids.webp') no-repeat center bottom,
           linear-gradient(to bottom right, #eff6ff, #c7d2fe);
         background-size: 400px, cover;
       "

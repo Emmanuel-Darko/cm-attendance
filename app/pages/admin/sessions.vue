@@ -16,7 +16,6 @@
         {{ loading ? 'Creating...' : 'Create' }}
       </button>
       <div v-if="error" class="text-red-500 text-sm mt-1">{{ error }}</div>
-      <div v-if="success" class="text-green-600 text-sm mt-1">{{ success }}</div>
     </form>
 
     <h3 class="text-xl font-semibold mb-2">Existing Sessions</h3>
@@ -40,12 +39,13 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import SuccessModal from '~/components/modals/SuccessModal.vue'
 import { useSessions } from '~/composables/useSessions'
 
 const { title, date, sessions, fetchSessions, createSession, closeSession } = await useSessions()
+const { showModal } = useCommon()
 const loading = ref(false)
 const error = ref('')
-const success = ref('')
 const loadingClose = ref('')
 
 const sessionsSorted = computed(() =>
@@ -54,13 +54,11 @@ const sessionsSorted = computed(() =>
 
 async function createSessionHandler() {
   error.value = ''
-  success.value = ''
   loading.value = true
   try {
     await createSession()
     await fetchSessions()
-    success.value = 'Session created!'
-    setTimeout(() => (success.value = ''), 2000)
+    showModal(SuccessModal, {message: 'Session created successfully.'})
   } catch (e) {
     error.value = e?.message || 'Failed to create session.'
   } finally {
@@ -74,6 +72,7 @@ async function closeSessionHandler(id) {
   try {
     await closeSession(id)
     await fetchSessions()
+    showModal(SuccessModal, {message: 'Session closed successfuly.'})
   } catch (e) {
     error.value = e?.message || 'Failed to close session.'
   } finally {

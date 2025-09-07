@@ -2,8 +2,6 @@
   <div class="max-w-140 rounded p-8 text-center transition" :class="dragClasses" @drop.prevent="dropHandler"
     @dragover.prevent="dragClasses = 'bg-blue-100 shadow'" @dragleave.prevent="dragClasses = ''">
 
-    <p class="mb-12 w-full break-all text-lg">Result : {{ text }}</p>
-
     <div class="rounded-lg shadow-lg">
       <div v-if="cams && cams.length > 1" class="flex place-content-center items-center p-2 text-sm">
         <label for="cams">
@@ -17,6 +15,7 @@
       </div>
 
       <video v-if="hasCamera" ref="videoElement" class="w-full rounded-lg"></video>
+      <Shimmer width="10" height="10" rounded="md"/>
 
       <div class="flex h-full">
         <label for="image"
@@ -36,15 +35,17 @@
 
 <script setup lang="ts">
 import QrScanner from "qr-scanner";
+const emit = defineEmits(["scan"]);
 
-const videoElement = ref<HTMLVideoElement>()
-  , text = ref("")
-  , errorText = ref("")
-  , hasCamera = ref(true)
-  , hasFlash = ref(false)
-  , dragClasses = ref("")
-  , cams = ref<QrScanner.Camera[]>()
-  , activeCamId = ref<any>("");
+const 
+  videoElement = ref<HTMLVideoElement>(), 
+  text = ref(""), 
+  errorText = ref(""), 
+  hasCamera = ref(true), 
+  hasFlash = ref(false), 
+  dragClasses = ref(""), 
+  cams = ref<QrScanner.Camera[]>(), 
+  activeCamId = ref<any>("");
 let qrScanner: QrScanner;
 
 watch(activeCamId, (id) => qrScanner.setCamera(id))
@@ -97,6 +98,7 @@ async function upload(e: Event, fileInput: File | null) {
   if (file) {
     try {
       text.value = (await QrScanner.scanImage(file, {returnDetailedScanResult: true})).data;
+      emit('scan', text.value)
     } catch (error: any) {
       decodeError(error instanceof Error ? error : error);
     }

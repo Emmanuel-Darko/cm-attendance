@@ -11,7 +11,7 @@
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Kids Records</h1>
         <button
-          @click="openModalForAdd"
+          @click="showModal(AddKidModal, {isEditing: false})"
           class="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow hover:bg-blue-700 transition"
         >
           Add New Kid
@@ -27,12 +27,13 @@
       <div v-else-if="error" class="text-center text-red-500 py-8">Error: {{ error }}</div>
       <div v-else>
         <div class="overflow-x-auto w-full">
-          <table class="w-full table-auto border-collapse">
+          <table class="w-full min-w-max table-auto border-collapse">
             <thead>
               <tr class="bg-blue-300">
                 <th class="p-3 border-b text-left text-gray-700">Kid ID</th>
                 <th class="p-3 border-b text-left text-gray-700">Name</th>
-                <th class="p-3 border-b text-left text-gray-700">Action</th>
+                <th class="p-3 border-b text-left text-gray-700 text-center">Age</th>
+                <th class="p-3 border-b text-left text-gray-700 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -57,7 +58,8 @@
                   </button>
                 </td>
                 <td class="p-3 border-b">{{ item.full_name }}</td>
-                <td class="p-3 border-b flex gap-2">
+                <td class="p-3 border-b text-center">{{ item.age }}</td>
+                <td class="p-3 border-b flex justify-center gap-8 text-center">
                   <button
                     @click.stop="editItem(item)"
                     title="Edit"
@@ -82,167 +84,71 @@
           </table>
         </div>
       </div>
-      <!-- Add/Edit Kid Modal Trigger Button -->
-      <div class="mt-10">
-        <p 
-          class="mt-2 font-medium min-h-[1.5em]"
-          :class="isErrorMessage ? 'text-red-600' : 'text-green-600'"
-        >{{ message }}</p>
-      </div>
-
-      <!-- Modal Overlay -->
-      <transition name="fade">
-        <div
-          v-if="showModal"
-          class="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40"
-        >
-          <!-- Modal Content -->
-          <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-8 relative z-50">
-            <button
-              @click="closeModal"
-              class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 class="text-xl font-semibold mb-6 text-gray-700">
-              {{ isEditing ? 'Edit Kid' : 'Add New Kid' }}
-            </h2>
-            <form @submit.prevent="isEditing ? editKid(selectedRecord as string) : addKid()" class="grid grid-cols-1 gap-4">
-              <input
-                v-model="name"
-                placeholder="Name"
-                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                autocomplete="off"
-              />
-              <input
-                v-model="age"
-                type="number"
-                placeholder="Age"
-                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                min="0"
-                autocomplete="off"
-              />
-              <select
-                v-model="gender"
-                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                <option disabled value="">Select Gender</option>
-                <option>Male</option>
-                <option>Female</option>
-              </select>
-              <input
-                v-model="gName"
-                placeholder="Guardian name"
-                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                autocomplete="off"
-              />
-              <input
-                v-model="gContact"
-                placeholder="Guardian contact"
-                class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                autocomplete="off"
-              />
-              <button
-                type="submit"
-                :class="[
-                  'rounded px-4 py-2 font-semibold transition',
-                  (!name || !age || !gender)
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                ]"
-                :disabled="!name || !age || !gender"
-              >
-                {{ isEditing ? 'Edit Kid' : 'Add Kid' }}
-              </button>
-            </form>
-          </div>
-        </div>
-      </transition>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-    import scanImg from '~/assets/scan.jpeg'
+  import scanImg from '~/assets/scan.jpeg'
+  import AddKidModal from '~/components/modals/AddKidModal.vue'
+import DeleteKidModal from '~/components/modals/DeleteKidModal.vue'
 
-    const { name, age, gender, message, records, gName, gContact, getRecords, addKid, editKid, deleteKid } = await useAttendance()
-    const qrUrl = ref<string>(scanImg)
-    const selectedRecord = ref<string | null>(null)
+  const { name, age, gender, gName, gContact, message, records, selectedRecord, getRecords } = await useAttendance()
+  const { showModal } = useCommon()
+  const qrUrl = ref<string>(scanImg)
 
-    const loading = ref(true)
-    const error = ref<any>(null)
-    const search = ref('')
-    const isEditing = ref(false)
-    const showModal = ref(false)
+  const loading = ref(true)
+  const error = ref<any>(null)
+  const search = ref('')
 
-    const filtered = computed(() =>
-        records.value.filter(a =>
-            a.full_name?.toLowerCase().includes(search.value.toLowerCase()) ||
-            a.id?.toLowerCase().includes(search.value.toLowerCase())
-        )
+  const filtered = computed(() =>
+    records.value.filter(a =>
+      a.full_name?.toLowerCase().includes(search.value.toLowerCase()) ||
+      a.id?.toLowerCase().includes(search.value.toLowerCase())
     )
+  )
 
-    const isErrorMessage = computed(() => {
-        const msg = message.value?.toLowerCase() || '';
-        return msg.includes('error') || msg.includes('fail') || msg.includes('invalid');
-    })
+  const isErrorMessage = computed(() => {
+    const msg = message.value?.toLowerCase() || '';
+    return msg.includes('error') || msg.includes('fail') || msg.includes('invalid');
+  })
 
-    const generateCode = async(id: string) => {
-        qrUrl.value = await useQrGenerator(id)
-        selectedRecord.value = id
+  const generateCode = async(id: string) => {
+    qrUrl.value = await useQrGenerator(id)
+    selectedRecord.value = id
+  }
+
+  const editItem = (item: {
+    id: string,
+    full_name: string,
+    age: number,
+    gender: string,
+    guardian_name?: string,
+    guardian_contact?: string
+  }) => {
+      name.value = item.full_name
+      age.value = item.age
+      gender.value = item.gender
+      gName.value = item.guardian_name || ''
+      gContact.value = item.guardian_contact || ''
+      selectedRecord.value = item.id
+
+      showModal(AddKidModal, {item, isEditing: true})
+  }
+
+  const deleteItem = (item: any) => {
+    showModal(DeleteKidModal, {kidId: item.id, name:item.full_name})
+  }
+
+  const copyId = (id: string) => navigator.clipboard.writeText(id)
+
+  onMounted(async () => {
+    try {
+      await getRecords()
+    } catch (err) {
+      error.value = err
+    } finally {
+      loading.value = false
     }
-
-    const editItem = (item: {
-        id: string,
-        full_name: string,
-        age: number,
-        gender: string,
-        guardian_name?: string,
-        guardian_contact?: string
-    }) => {
-        isEditing.value = true
-        showModal.value = true
-
-        name.value = item.full_name
-        age.value = item.age.toString()
-        gender.value = item.gender
-        gName.value = item.guardian_name || ''
-        gContact.value = item.guardian_contact || ''
-        selectedRecord.value = item.id
-    }
-
-    const deleteItem = (item: any) => {
-        if (confirm(`Are you sure you want to delete ${item.full_name}?`)) {
-            deleteKid(item.id)
-        }
-    }
-
-    const copyId = (id: string) => navigator.clipboard.writeText(id)
-
-    const openModalForAdd = () => showModal.value = true
-
-    const closeModal = () => {
-      showModal.value=false
-
-      if(isEditing.value) {
-        isEditing.value = false
-        name.value = ''
-        age.value = ''
-        gender.value = ''
-        gName.value = ''
-        gContact.value = ''
-        selectedRecord.value = ''
-      }
-    }
-
-    onMounted(async () => {
-        try {
-            await getRecords()
-        } catch (err) {
-            error.value = err
-        } finally {
-            loading.value = false
-        }
-    })
+  })
 </script>

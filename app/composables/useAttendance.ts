@@ -1,14 +1,20 @@
+import SuccessModal from "~/components/modals/SuccessModal.vue";
 import type { Database } from "~/types/database";
 
 export const useAttendance = async () => {
   const client = useSupabaseClient<Database>();
-  const name = ref("");
-  const age = ref("");
-  const gender = ref("");
-  const message = ref("");
-  const records = ref<Database[]|any[]>([]);
-  const gName = ref("");
-  const gContact = ref("");
+  const name = useState<string>("attendance_name", () => "");
+  const age = useState<number | null>("attendance_age", () => null);
+  const gender = useState<string>("attendance_gender", () => "");
+  const message = useState<string>("attendance_message", () => "");
+  const records = useState<any[]>("attendance_records", () => []);
+  const gName = useState<string>("attendance_gName", () => "");
+  const gContact = useState<string>("attendance_gContact", () => "");
+  const selectedRecord = useState<string | undefined>("attendance_selectedRecord", () => undefined);
+  const processing = ref<boolean>(false)
+
+  // composable imports
+  const { showModal, generateAvatar } = useCommon()
 
   const getAttendance = async () => {
     const { data, error } = await client
@@ -29,7 +35,7 @@ export const useAttendance = async () => {
   };
 
   const addKid = async () => {
-    alert(name.value)
+    processing.value = true
     const { error } = await client
       .from("kids")
       .insert([
@@ -37,20 +43,23 @@ export const useAttendance = async () => {
           full_name: name.value, 
           age: Number(age.value), 
           gender: gender.value,
+          avatar_url: generateAvatar({name: name.value, gender: gender.value}),
           guardian_name: gName.value,
           guardian_contact: gContact.value
-         },
+        },
       ]);
 
-    message.value = error ? "Error adding kid" : "Kid added!";
+    message.value = error ? "Error adding kid" : "Kid added successfully";
     if (!error) {
       name.value = "";
-      age.value = "";
+      age.value = null;
       gender.value = "";
       gName.value = "";
       gContact.value = ""
     }
     await getRecords()
+    processing.value = false
+    showModal(SuccessModal, {message})
   };
 
   const editKid = async (kid_id: string) => {
@@ -58,27 +67,30 @@ export const useAttendance = async () => {
       message.value = "Error: No ID provided for edit";
       return;
     }
-
+    processing.value = true
     const { error } = await client
       .from("kids")
       .update({
         full_name: name.value,
         age: Number(age.value),
         gender: gender.value,
+        avatar_url: generateAvatar({name: name.value, gender: gender.value}),
         guardian_name: gName.value,
         guardian_contact: gContact.value
       })
       .eq("id", kid_id);
 
-    message.value = error ? "Error editing kid" : "Kid updated!";
+    message.value = error ? "Error editing kid" : "Kid updated successfully";
     if (!error) {
       name.value = "";
-      age.value = "";
+      age.value = null;
       gender.value = "";
       gName.value = "";
       gContact.value = "";
     }
     await getRecords();
+    processing.value = false
+    showModal(SuccessModal, {message})
   };
 
   const deleteKid = (kid_id: string) => {
@@ -86,14 +98,16 @@ export const useAttendance = async () => {
       message.value = "Error: No ID provided for delete";
       return;
     }
-
+    processing.value = true
     client
       .from("kids")
       .delete()
       .eq("id", kid_id)
       .then(({ error }) => {
-        message.value = error ? "Error deleting kid" : "Kid deleted!";
+        message.value = error ? "Error deleting kid" : "Successfully deleted kid!";
         getRecords();
+        processing.value = false
+        showModal(SuccessModal, {message})
       });
   }
 
@@ -105,6 +119,8 @@ export const useAttendance = async () => {
     records,
     gName,
     gContact,
+    selectedRecord,
+    processing,
     getAttendance,
     getRecords,
     addKid,
