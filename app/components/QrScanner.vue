@@ -23,7 +23,14 @@
           <UploadIcon />
           <span class="-md:text-sm">Drop or click to upload image</span>
         </label>
-        <input type="file" accept="image/*" class="hidden" id="image" @change="upload" />
+        <input
+          id="image"
+          type="file"
+          accept="image/*"
+          class="hidden"
+          @change="e => upload((e.target as HTMLInputElement).files?.[0] || null)"
+        />
+
       </div>
     </div>
     
@@ -92,28 +99,33 @@ function toggleFlash(state: boolean) {
   state ? qrScanner.turnFlashOn() : qrScanner.turnFlashOff();
 }
 
-async function upload(e: Event, fileInput: File | null) {
+async function upload(file: File | null) {
   text.value = "";
-  const file = fileInput ? fileInput : (e.target as HTMLInputElement).files?.[0];
-  if (file) {
-    try {
-      text.value = (await QrScanner.scanImage(file, {returnDetailedScanResult: true})).data;
-      emit('scan', text.value)
-    } catch (error: any) {
-      decodeError(error instanceof Error ? error : error);
-    }
+
+  if (!file) return;
+
+  try {
+    text.value = (
+      await QrScanner.scanImage(file, { returnDetailedScanResult: true })
+    ).data;
+    emit("scan", text.value);
+  } catch (error: any) {
+    decodeError(error instanceof Error ? error : error);
   }
 }
+
+
 
 function dropHandler(e: DragEvent) {
   dragClasses.value = "";
 
-  if (e.dataTransfer?.items[0]) {
-    if (e.dataTransfer.items[0].kind === "file") {
-      upload(e, e.dataTransfer.items[0].getAsFile());
-    }
-  }
+  const file = e.dataTransfer?.items[0]?.kind === "file"
+    ? e.dataTransfer.items[0].getAsFile()
+    : null;
+
+  upload(file);
 }
+
 
 onUnmounted(() => qrScanner?.destroy());
 </script>
