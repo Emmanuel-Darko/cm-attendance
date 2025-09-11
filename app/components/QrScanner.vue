@@ -15,7 +15,7 @@
       </div>
 
       <video v-if="hasCamera" ref="videoElement" class="w-full rounded-lg"></video>
-      <Shimmer width="10" height="10" rounded="md"/>
+      <QrShimmer v-else width="10" height="10" rounded="md"/>
 
       <div class="flex h-full">
         <label for="image"
@@ -30,7 +30,6 @@
           class="hidden"
           @change="e => upload((e.target as HTMLInputElement).files?.[0] || null)"
         />
-
       </div>
     </div>
     
@@ -133,3 +132,13 @@ function dropHandler(e: DragEvent) {
 
 onUnmounted(() => qrScanner?.destroy());
 </script>
+
+<style scoped>
+  .qr-scanner-region-highlight {
+    border: 2px solid blue !important;
+  }
+
+  .qr-scanner-code-outline {
+    stroke: blue !important;
+  }
+</style>
