@@ -58,7 +58,7 @@ let qrScanner: QrScanner;
 watch(activeCamId, (id) => qrScanner.setCamera(id))
 watch(text, () => {
   navigator.vibrate(150)
-  emit('scan', text)
+  emit('scan', text.value)
 })
 
 onMounted(async () => {
@@ -94,8 +94,9 @@ onMounted(async () => {
 });
 
 function decodeError(error: Error | string) {
-  console.error(error);
   errorText.value = error instanceof Error ? error.message : error;
+  if(errorText.value !== (error instanceof Error ? error.message : error))
+    console.error(error);
 }
 
 function toggleFlash(state: boolean) {

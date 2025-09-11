@@ -52,7 +52,6 @@ const countdown = ref(5)
 const supabase = useSupabaseClient<Database>()
 
 async function handleScan(kidId: string) {
-  console.log("kidId", kidId)
   // Get active session
   const { data: session, error: sessionError } = await supabase
     .from('sessions')
