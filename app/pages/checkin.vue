@@ -127,7 +127,7 @@ function showSuccessModal() {
 }
 
 function launchConfetti() {
-  const duration = 2000
+  const duration = 3000
   const end = Date.now() + duration;
   (function frame() {
     confetti({
