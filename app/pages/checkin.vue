@@ -80,11 +80,15 @@ async function handleScan(kidId: string) {
   }
 
   // Get kid name
-  const { data: kidData } = await supabase
+  const { data: kidData, error: notFound } = await supabase
     .from('kids')
     .select('full_name,avatar_url')
     .eq('id', kidId)
     .maybeSingle()
+  
+  if(notFound) {
+    message.value = 'Kid not found.'
+  }
 
   // Save attendance
   const { error } = await supabase.from('attendance').insert([
@@ -106,10 +110,9 @@ async function handleScan(kidId: string) {
 }
 
 function showSuccessModal() {
-  countdown.value = 5
-  showModal(CheckinModal, {kidAvatar, kidName, countdown})
+  countdown.value = 10
+  showModal(CheckinModal, { kidAvatar, kidName, countdown })
 
-  // Fire confetti effect
   launchConfetti()
 
   // Countdown timer
