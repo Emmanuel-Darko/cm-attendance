@@ -88,6 +88,7 @@ async function handleScan(kidId: string) {
   
   if(notFound) {
     message.value = 'Kid not found.'
+    return
   }
 
   // Save attendance
