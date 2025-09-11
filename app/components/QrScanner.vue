@@ -11,7 +11,7 @@
           v-model="activeCamId" name="cams" id="cams">
           <option v-for="c in cams" :value="c.id">{{ c.label }}</option>
         </select>
-        <FlashButton v-if="hasFlash" @toggle="(state) => toggleFlash(state)" />
+        <FlashButton v-if="true" @toggle="(state) => toggleFlash(state)" />
       </div>
 
       <video v-if="hasCamera" ref="videoElement" class="w-full rounded-lg"></video>
@@ -56,7 +56,10 @@ const
 let qrScanner: QrScanner;
 
 watch(activeCamId, (id) => qrScanner.setCamera(id))
-watch(text, () => navigator.vibrate(150))
+watch(text, () => {
+  navigator.vibrate(150)
+  emit('scan', text)
+})
 
 onMounted(async () => {
   hasCamera.value = await QrScanner.hasCamera();
