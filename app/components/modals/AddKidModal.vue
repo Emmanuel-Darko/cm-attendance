@@ -24,17 +24,21 @@
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <label for="kid-age" class="text-xs text-gray-600 font-medium">Age <span class="text-[red]">(max: 13)</span></label>
+                <label for="kid-dob" class="text-xs text-gray-600 font-medium">
+                  Dob
+                  <span class="text-[red]">
+                    (least: year {{ leastYear }})
+                  </span>
+                </label>
                 <input
-                  id="kid-age"
-                  v-model="age"
-                  type="number"
+                  id="kid-dob"
+                  v-model="dob"
+                  type="date"
                   placeholder="11"
                   class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
                   min="0"
                   max="13"
                   autocomplete="off"
-                  @change="checkAge"
                 />
               </div>
               <div class="flex flex-col gap-1">
@@ -73,11 +77,11 @@
                 type="submit"
                 :class="[
                   'rounded px-4 py-2 font-semibold transition',
-                  (!name || !age || !gender)
+                  (!name || !dob || !gender)
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 ]"
-                :disabled="!name || !age || !gender || processing"
+                :disabled="!name || !dob || !gender || processing"
               >
                 <loaderIcon v-if="processing" />
                 <span v-else>{{ isEditing ? 'Edit Kid' : 'Add Kid' }}</span>
@@ -89,16 +93,21 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue'
 import BaseModal from './BaseModal.vue'
 
-  const { name, age, gender, message, gName, gContact, selectedRecord, processing, addKid, editKid } = await useAttendance()
+  const { name, dob, gender, message, gName, gContact, selectedRecord, processing, addKid, editKid } = await useAttendance()
   const  { hideModal } = useCommon()
   const props = defineProps(['item', 'isEditing'])
+
+  const leastYear = computed(() => {
+    return new Date().getFullYear() - 13
+  })
 
   const closeModal = () => {
     hideModal()
     name.value = ''
-    age.value = null
+    dob.value = null
     gender.value = ''
     gName.value = ''
     gContact.value = ''
@@ -107,16 +116,17 @@ import BaseModal from './BaseModal.vue'
 
   const checkAge = (event: Event) => {
     const target = event.target as HTMLInputElement
-    if (target.value === '') return age.value = null
-    let value = Number(target.value)
-    if (value < 1) {
-      age.value = 1
-      target.value = '1'
-    } else if (value > 13) {
-      age.value = 13
-      target.value = '13'
+    if (target.value === '') return dob.value = null
+
+    let inputYear = Number(target.value ? new Date(target.value).getFullYear() : NaN)
+    const currentYear = new Date().getFullYear()
+    const minYear = leastYear.value
+
+    // Only accept years > minYear and <= currentYear
+    if (inputYear > minYear && inputYear <= currentYear) {
+      dob.value = inputYear
     } else {
-      age.value = value
+      dob.value = null
     }
   }
 </script>

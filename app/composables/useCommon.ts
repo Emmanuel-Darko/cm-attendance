@@ -19,6 +19,11 @@ export const useCommon = () => {
         if(gender == GENDER.female)
             return `https://avatar.iran.liara.run/public/girl?username=${name.replace(/\s+/g, '')}`
     }
+    const getAge = (dob: Date) => {
+        const currentYear = new Date().getFullYear()
+        const yearOfBirth = new Date(dob).getFullYear()
+        return currentYear - yearOfBirth
+    }
 
     return {
         isVisible,
@@ -26,6 +31,7 @@ export const useCommon = () => {
         props,
         showModal,
         hideModal,
-        generateAvatar
+        generateAvatar,
+        getAge
     }
 }

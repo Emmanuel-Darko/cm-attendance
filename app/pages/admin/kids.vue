@@ -58,7 +58,7 @@
                   </button>
                 </td>
                 <td class="p-3 border-b">{{ item.full_name }}</td>
-                <td class="p-3 border-b text-center">{{ item.age }}</td>
+                <td class="p-3 border-b text-center">{{ getAge(item.dob) }}</td>
                 <td class="p-3 border-b flex justify-center gap-8 text-center">
                   <button
                     @click.stop="editItem(item)"
@@ -93,8 +93,8 @@
   import AddKidModal from '~/components/modals/AddKidModal.vue'
 import DeleteKidModal from '~/components/modals/DeleteKidModal.vue'
 
-  const { name, age, gender, gName, gContact, message, records, selectedRecord, getRecords } = await useAttendance()
-  const { showModal } = useCommon()
+  const { name, dob, gender, gName, gContact, message, records, selectedRecord, getRecords } = await useAttendance()
+  const { showModal, getAge } = useCommon()
   const qrUrl = ref<string>(scanImg)
 
   const loading = ref(true)
@@ -121,13 +121,13 @@ import DeleteKidModal from '~/components/modals/DeleteKidModal.vue'
   const editItem = (item: {
     id: string,
     full_name: string,
-    age: number,
+    dob: number,
     gender: string,
     guardian_name?: string,
     guardian_contact?: string
   }) => {
       name.value = item.full_name
-      age.value = item.age
+      dob.value = item.dob
       gender.value = item.gender
       gName.value = item.guardian_name || ''
       gContact.value = item.guardian_contact || ''

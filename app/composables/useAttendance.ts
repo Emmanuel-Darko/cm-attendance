@@ -4,7 +4,7 @@ import type { Database } from "~/types/database";
 export const useAttendance = async () => {
   const client = useSupabaseClient<Database>();
   const name = useState<string>("attendance_name", () => "");
-  const age = useState<number | null>("attendance_age", () => null);
+  const dob = useState<number | null>("attendance_dob", () => null);
   const gender = useState<string>("attendance_gender", () => "");
   const message = useState<string>("attendance_message", () => "");
   const records = useState<any[]>("attendance_records", () => []);
@@ -41,7 +41,7 @@ export const useAttendance = async () => {
       .insert([
         { 
           full_name: name.value, 
-          age: Number(age.value), 
+          dob: dob.value, 
           gender: gender.value,
           avatar_url: generateAvatar({name: name.value, gender: gender.value}),
           guardian_name: gName.value,
@@ -52,7 +52,7 @@ export const useAttendance = async () => {
     message.value = error ? "Error adding kid" : "Kid added successfully";
     if (!error) {
       name.value = "";
-      age.value = null;
+      dob.value = null;
       gender.value = "";
       gName.value = "";
       gContact.value = ""
@@ -68,29 +68,39 @@ export const useAttendance = async () => {
       return;
     }
     processing.value = true
-    const { error } = await client
-      .from("kids")
-      .update({
-        full_name: name.value,
-        age: Number(age.value),
-        gender: gender.value,
-        avatar_url: generateAvatar({name: name.value, gender: gender.value}),
-        guardian_name: gName.value,
-        guardian_contact: gContact.value
-      })
-      .eq("id", kid_id);
+    let errorInstance: any = null;
+    try {
+      const { error } = await client
+        .from("kids")
+        .update({
+          full_name: name.value,
+          dob: dob.value,
+          gender: gender.value,
+          avatar_url: generateAvatar({name: name.value, gender: gender.value}),
+          guardian_name: gName.value,
+          guardian_contact: gContact.value
+        })
+        .eq("id", kid_id);
 
-    message.value = error ? "Error editing kid" : "Kid updated successfully";
-    if (!error) {
-      name.value = "";
-      age.value = null;
-      gender.value = "";
-      gName.value = "";
-      gContact.value = "";
+      errorInstance = error;
+      message.value = error ? "Error editing kid" : "Kid updated successfully";
+      await getRecords();
+      showModal(SuccessModal, {message})
+
+      if (!error) {
+        name.value = "";
+        dob.value = null;
+        gender.value = "";
+        gName.value = "";
+        gContact.value = "";
+      }
+    } catch (err: any) {
+      errorInstance = err;
+      message.value = `Error editing kid: ${err?.message || err}`;
+      // showModal(SuccessModal, {message});
+    } finally {
+      processing.value = false;
     }
-    await getRecords();
-    processing.value = false
-    showModal(SuccessModal, {message})
   };
 
   const deleteKid = (kid_id: string) => {
@@ -113,7 +123,7 @@ export const useAttendance = async () => {
 
   return {
     name,
-    age,
+    dob,
     gender,
     message,
     records,

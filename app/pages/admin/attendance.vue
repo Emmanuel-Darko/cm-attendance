@@ -4,6 +4,7 @@
 
   const { records, getAttendance, getRecords } = await useAttendance()
   const { sessions, fetchSessions } = await useSessions()
+  const { getAge } = useCommon()
   const loading = ref(true)
   const error = ref<any>(null)
   const attendance = ref<Database[] | any[]>([])
@@ -16,10 +17,10 @@
     return attendance.value.filter(item => {
       const kid = records.value.find(k => k.id === item.kid_id)
       const name = kid?.full_name?.toLowerCase() || ''
-      const age = String(kid?.age)?.toLowerCase() || ''
+      const dob = String(kid?.dob)?.toLowerCase() || ''
       const id = kid.id?.toLowerCase() || ''
       const searchTerm = search.value.toLowerCase()
-      return name.includes(searchTerm) || age.includes(searchTerm) || id.includes(searchTerm.toLowerCase())
+      return name.includes(searchTerm) || dob.includes(searchTerm) || id.includes(searchTerm.toLowerCase())
     })
   })
 
@@ -157,7 +158,7 @@
                 <tr v-for="item,index in session.attendance" :key="item.id">
                   <td class="px-6 py-4 whitespace-nowrap">{{ index + 1 }}</td>
                   <td class="px-6 py-4 whitespace-nowrap">{{ findKid(item.kid_id)?.full_name }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ findKid(item.kid_id)?.age }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">{{ getAge(findKid(item.kid_id)?.dob) }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {{ new Date(item.checkin_time).toLocaleString() }}
                   </td>
