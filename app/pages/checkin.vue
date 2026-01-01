@@ -93,7 +93,7 @@
                 </span>
               </td>
               <td class="p-3 border-b text-center text-gray-600">
-                {{ attendanceMap[kid.id] ? formatTime(attendanceMap[kid.id]) : '-' }}
+                {{ attendanceMap[kid.id] ? formatTime(attendanceMap[kid.id] || '') : '-' }}
               </td>
               <td class="p-3 border-b text-center">
                 <button
@@ -104,7 +104,17 @@
                 >
                   Mark Present
                 </button>
-                <span v-else class="text-green-600 font-medium">✓ Checked in</span>
+                <div v-else class="flex items-center justify-center space-x-2">
+                  <span class="text-green-600 font-medium">✓ Checked in</span>
+                  <button
+                    title="Remove"
+                    @click="removeAttendance(kid.id)"
+                    :disabled="checkingIn"
+                    class="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    x
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -116,11 +126,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import QrScanner from '~/components/QrScanner.vue'
-import type { Database } from '~/types/database'
-// @ts-ignore
+import type { Database } from '../types/database'
 import confetti from 'canvas-confetti'
-import CheckinModal from '~/components/modals/CheckinModal.vue'
+import CheckinModal from '../components/modals/CheckinModal.vue'
 
 const { showModal, hideModal } = useCommon()
 
@@ -343,6 +351,41 @@ async function manualCheckIn(kidId: string, fullName: string) {
   }
 }
 
+async function removeAttendance(kidId: string) {
+  if (!selectedSessionId.value || checkingIn.value) return
+
+  checkingIn.value = true
+
+  try {
+    // Check if already checked in
+    const { data: existing } = await supabase
+      .from('attendance')
+      .select('*')
+      .eq('kid_id', kidId)
+      .eq('session_id', selectedSessionId.value)
+      .maybeSingle()
+
+    if (!existing) {
+      message.value = `record not found.`
+      return
+    }
+
+    // Insert attendance record
+    const { error } = await supabase.from('attendance')
+    .delete()
+    .eq('kid_id', kidId)
+
+    if (error) {
+      message.value = `Error checking removing record`
+      console.error(error)
+    } else {
+      await fetchAttendance()
+    }
+  } finally {
+    checkingIn.value = false
+  }
+}
+
 // Format time for display
 function formatTime(timestamp: string) {
   const date = new Date(timestamp)
@@ -364,8 +407,6 @@ onMounted(async () => {
   await fetchKids()
   await fetchAttendance()
 })
-
-// onMounted(() => showModal(CheckinModal, {kidAvatar: '~/assets/avatar.jpg', kidName, countdown}))
 </script>
 
 <style scoped>

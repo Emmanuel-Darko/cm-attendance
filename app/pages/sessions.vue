@@ -84,9 +84,9 @@ onMounted(fetchSessions)
 </script>
 
 <style scoped>
-input[type="date"]::-webkit-input-placeholder { color: #aaa; }
-input[type="date"]::-moz-placeholder { color: #aaa; }
-input[type="date"]:-ms-input-placeholder { color: #aaa; }
-input[type="date"]::placeholder { color: #aaa; }
+  input[type="date"]::-webkit-input-placeholder { color: #aaa; }
+  input[type="date"]::-moz-placeholder { color: #aaa; }
+  input[type="date"]:-ms-input-placeholder { color: #aaa; }
+  input[type="date"]::placeholder { color: #aaa; }
 </style>
   

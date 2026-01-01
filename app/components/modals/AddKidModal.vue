@@ -53,6 +53,18 @@
                   <option :value="GENDER.female">Female</option>
                 </select>
               </div>
+              <!-- Give this select option if isAdmin -->
+              <div v-if="isAdmin" class="flex flex-col gap-1">
+                <label for="kid-gender" class="text-xs text-gray-600 font-medium">Local</label>
+                <select
+                  id="local"
+                  v-model="local_id"
+                  class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                  <option disabled value="">Select Local</option>
+                  <option v-for="local in locals" :value="local.id">{{ local.name }}</option>
+                </select>
+              </div>
               <div class="flex flex-col gap-1">
                 <label for="guardian-name" class="text-xs text-gray-600 font-medium">Guardian Name</label>
                 <input
@@ -93,12 +105,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import BaseModal from './BaseModal.vue'
+  import { computed } from 'vue'
+  import BaseModal from './BaseModal.vue'
+  import type { locals } from '~/types/database'
 
-  const { name, dob, gender, message, gName, gContact, selectedRecord, processing, addKid, editKid } = await useAttendance()
+  const { name, dob, gender, local_id, gName, gContact, selectedRecord, processing, addKid, editKid } = await useAttendance()
+  const { isAdmin } = useAuth()
   const  { hideModal } = useCommon()
+  const { data: locals } = await useFetch('/api/admin/locals')
+  
   const props = defineProps(['item', 'isEditing'])
+
 
   const leastYear = computed(() => {
     return new Date().getFullYear() - 13

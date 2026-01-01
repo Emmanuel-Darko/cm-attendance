@@ -1,5 +1,25 @@
-export default defineNuxtRouteMiddleware((to) => {
-  // Allow access to all routes without authentication for now
-  // This prevents the automatic redirect to /login
-  return
-}) 
+export default defineNuxtRouteMiddleware(async (to) => {
+  const { user, getUser } = useAuth()
+  
+  const publicPages = ['/login']
+  const authRequired = !publicPages.includes(to.path)
+
+  if (!user.value) {
+    await getUser()
+  }
+
+  if (to.path === '/login' && user.value) {
+    return navigateTo('/')
+  }
+
+  if (authRequired && !user.value) {
+    return navigateTo('/login')
+  }
+
+  // Restrict admin routes to only admin users
+  if (to.path.startsWith('/admin')) {
+    if (!user.value || user.value.role !== 'admin') {
+      return navigateTo('/')
+    }
+  }
+})

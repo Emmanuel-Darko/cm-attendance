@@ -32,7 +32,7 @@
         </h1>
       </div>
 
-      <p class="text-gray-600 mt-2 max-w-xl mx-auto lg:mx-0 text-base sm:text-lg">
+      <p class="text-gray-600 mt-2 max-w-xl mx-auto lg:mx-0 text-base hidden lg:block">
         Making check-in fun and easy for kids and parents — quick QR scanning, simple session management and friendly reports.
       </p>
 
@@ -53,7 +53,7 @@
           <span class="font-semibold">{{ ctaText }}</span>
         </button>
         <NuxtLink
-          to="/admin/sessions"
+          to="/sessions"
           class="text-sm text-gray-600 hover:text-gray-800 underline"
         >
           Manage Sessions

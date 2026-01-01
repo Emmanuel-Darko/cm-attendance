@@ -1,14 +1,15 @@
 <template>
-    <div class="overflow-y-scroll hide-scroll">
-        <slot></slot>
-        <component
-            v-if="isVisible"
-            v-bind="props"
-            :is="content"
-            @close="hideModal"
-        />
-    </div>
+  <div class="overflow-y-scroll hide-scroll">
+    <ProfileDropdown />
+    <slot></slot>
+    <component
+      v-if="isVisible"
+      v-bind="props"
+      :is="content"
+      @close="hideModal"
+    />
+  </div>
 </template>
 <script setup lang="ts">
-    const { isVisible, content, props, hideModal } = useCommon()
+const { isVisible, content, props, hideModal } = useCommon();
 </script>

@@ -6,6 +6,7 @@ export const useAttendance = async () => {
   const name = useState<string>("attendance_name", () => "");
   const dob = useState<number | null>("attendance_dob", () => null);
   const gender = useState<string>("attendance_gender", () => "");
+  const local_id = useState<string>("attendance_local", () => "");
   const message = useState<string>("attendance_message", () => "");
   const records = useState<any[]>("attendance_records", () => []);
   const gName = useState<string>("attendance_gName", () => "");
@@ -27,7 +28,10 @@ export const useAttendance = async () => {
   };
 
   const getRecords = async () => {
-    const { data, error } = await client.from("kids").select("*");
+    const { data, error } = await client
+      .from("kids")
+      .select("*")
+      .eq("local_id", useAuth().user.value.local_id);
 
     if (error) throw error;
     records.value = data;
@@ -43,6 +47,7 @@ export const useAttendance = async () => {
           full_name: name.value, 
           dob: dob.value, 
           gender: gender.value,
+          local_id: local_id.value || useAuth().user.value.local_id,
           avatar_url: generateAvatar({name: name.value, gender: gender.value}),
           guardian_name: gName.value,
           guardian_contact: gContact.value
@@ -54,6 +59,7 @@ export const useAttendance = async () => {
       name.value = "";
       dob.value = null;
       gender.value = "";
+      local_id.value = ""
       gName.value = "";
       gContact.value = ""
     }
@@ -76,6 +82,7 @@ export const useAttendance = async () => {
           full_name: name.value,
           dob: dob.value,
           gender: gender.value,
+          local_id: local_id.value || useAuth().user.value.local_id,
           avatar_url: generateAvatar({name: name.value, gender: gender.value}),
           guardian_name: gName.value,
           guardian_contact: gContact.value
@@ -126,6 +133,7 @@ export const useAttendance = async () => {
     dob,
     gender,
     message,
+    local_id,
     records,
     gName,
     gContact,

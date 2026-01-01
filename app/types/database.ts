@@ -47,3 +47,10 @@ export interface Database {
     }
   }
 } 
+
+export interface locals {
+  name: string,
+  location: string,
+  created_at: Date
+  id: string
+}
