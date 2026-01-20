@@ -1,39 +1,7 @@
-<!-- <template>
-    <div class="max-w-4xl mx-auto py-10 px-4">
-      <h1 class="text-3xl font-bold text-center mb-8 text-slate-800">
-        Admin Dashboard ⚙️
-      </h1>
-  
-      <div class="grid md:grid-cols-2 gap-6">
-        <AdminCard title="Add Local" description="Register a new local branch" @click="showModal(AddLocalModal)" />
-        <AdminCard title="Add Teacher" description="Register a teacher under a local" @click="showModal(AddTeacherModal)" />
-        <AdminCard 
-          title="View Locals" 
-          description="Manage existing locals"
-          @click="navigateTo('/admin/locals')" 
-        />
-        <AdminCard 
-          title="View Teachers" 
-          description="Manage all teachers" 
-          @click="navigateTo('/admin/teachers')" 
-        />
-      </div>
-    </div>
-</template>
-
 <script setup lang="ts">
-  import AdminCard from '../../components/AdminCard.vue'
-  import AddLocalModal from '../../components/modals/AddLocalModal.vue'
-  import AddTeacherModal from '../../components/modals/AddTeacherModal.vue'
-
-  const  { showModal } = useCommon()
-</script> -->
-
-
-<script setup lang="ts">
-const { data: locals } = await useFetch('/api/admin/locals')
-const { data: teachers } = await useFetch('/api/admin/teachers')
-const { data: kids } = await useFetch('/api/admin/kids')
+const { data: locals } = await useFetch('/api/admin/locals/list')
+const { data: teachers } = await useFetch('/api/admin/teachers/list')
+const { data: kids } = await useFetch('/api/admin/kids/list')
 </script>
 
 <template>
@@ -43,9 +11,9 @@ const { data: kids } = await useFetch('/api/admin/kids')
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <NuxtLink
         v-for="card in [
-          { title: 'Locals', count: locals?.length, to: '/admin/locals', color: 'bg-blue-100 text-blue-700' },
-          { title: 'Teachers', count: teachers?.length, to: '/admin/teachers', color: 'bg-green-100 text-green-700' },
-          { title: 'Kids', count: kids?.length, to: '/admin/kids', color: 'bg-yellow-100 text-yellow-700' }
+          { title: 'Locals', count: Array.isArray(locals) ? locals.length : 0, to: '/admin/locals', color: 'bg-blue-100 text-blue-700' },
+          { title: 'Teachers', count: Array.isArray(teachers) ? teachers.length : 0, to: '/admin/teachers', color: 'bg-green-100 text-green-700' },
+          { title: 'Kids', count: Array.isArray(kids) ? kids.length : 0, to: '/admin/kids', color: 'bg-yellow-100 text-yellow-700' }
         ]"
         :key="card.title"
         :to="card.to"

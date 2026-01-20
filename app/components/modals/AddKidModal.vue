@@ -27,7 +27,7 @@
                 <label for="kid-dob" class="text-xs text-gray-600 font-medium">
                   Dob
                   <span class="text-[red]">
-                    (least: year {{ leastYear }})
+                    (least year: {{ leastYear }})
                   </span>
                 </label>
                 <input
@@ -36,8 +36,7 @@
                   type="date"
                   placeholder="11"
                   class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                  min="0"
-                  max="13"
+                  :min="`${leastYear}-01-01`"
                   autocomplete="off"
                 />
               </div>
@@ -62,7 +61,13 @@
                   class="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 >
                   <option disabled value="">Select Local</option>
-                  <option v-for="local in locals" :value="local.id">{{ local.name }}</option>
+                  <option
+                    v-for="local in (localsList as Array<Locals>)"
+                    :key="local.id"
+                    :value="local.id"
+                  >
+                    {{ local.name }}
+                  </option>
                 </select>
               </div>
               <div class="flex flex-col gap-1">
@@ -105,46 +110,25 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
   import BaseModal from './BaseModal.vue'
-  import type { locals } from '~/types/database'
+  import type { locals as Locals } from '~/types/database'
 
   const { name, dob, gender, local_id, gName, gContact, selectedRecord, processing, addKid, editKid } = await useAttendance()
   const { isAdmin } = useAuth()
   const  { hideModal } = useCommon()
-  const { data: locals } = await useFetch('/api/admin/locals')
+  const { data: localsList } = await useFetch('/api/admin/locals/list')
   
   const props = defineProps(['item', 'isEditing'])
-
-
-  const leastYear = computed(() => {
-    return new Date().getFullYear() - 13
-  })
 
   const closeModal = () => {
     hideModal()
     name.value = ''
     dob.value = null
     gender.value = ''
+    local_id.value = ''
     gName.value = ''
     gContact.value = ''
     selectedRecord.value = ''
-  }
-
-  const checkAge = (event: Event) => {
-    const target = event.target as HTMLInputElement
-    if (target.value === '') return dob.value = null
-
-    let inputYear = Number(target.value ? new Date(target.value).getFullYear() : NaN)
-    const currentYear = new Date().getFullYear()
-    const minYear = leastYear.value
-
-    // Only accept years > minYear and <= currentYear
-    if (inputYear > minYear && inputYear <= currentYear) {
-      dob.value = inputYear
-    } else {
-      dob.value = null
-    }
   }
 </script>
 

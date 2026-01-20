@@ -30,15 +30,17 @@ function clearSessionData() {
 
 // Utility: fetch and set teacher data to user.value
 async function fetchAndSetTeacherData(userObj: any, userRef: any) {
-  if (userObj && userObj.id) {
+  if (userObj?.id) {
     try {
-      const { data: teacherData } = await useFetch('/api/admin/teachers', {
+      const { data: teacherData } = await useFetch('/api/admin/teachers/list', {
         method: 'GET',
         params: { user_id: userObj.id }
       })
-      userRef.value = teacherData.value?.[0]
+      const dataArr = Array.isArray(teacherData.value) ? teacherData.value : []
+      userRef.value = dataArr[0] ?? null
     } catch (e) {
       userRef.value = null
+      console.error(e)
     }
   } else {
     userRef.value = null

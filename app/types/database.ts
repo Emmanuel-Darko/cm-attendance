@@ -44,6 +44,64 @@ export interface Database {
           created_at?: string
         }
       }
+      kids: {
+        Row: {
+          id: string
+          full_name: string
+          dob: number
+          gender: string
+          local_id: string
+          avatar_url: string
+          guardian_name: string | null
+          guardian_contact: string | null
+          created_at?: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          dob: number
+          gender: string
+          local_id: string
+          avatar_url: string
+          guardian_name?: string | null
+          guardian_contact?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          dob?: number
+          gender?: string
+          local_id?: string
+          avatar_url?: string
+          guardian_name?: string | null
+          guardian_contact?: string | null
+          created_at?: string
+        }
+      }
+      session_kids: {
+        Row: {
+          id?: string
+          session_id: string
+          kid_id: string
+          source: string
+          created_at?: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          kid_id: string
+          source: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          kid_id?: string
+          source?: string
+          created_at?: string
+        }
+      }
     }
   }
 } 

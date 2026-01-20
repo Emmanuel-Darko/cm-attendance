@@ -56,7 +56,10 @@
 
 <script lang="ts" setup>
   import SuccessModal from "../../components/modals/SuccessModal.vue";
-  const client = useSupabaseClient();
+
+  const props = defineProps<{
+    onSuccess: Function
+  }>()
   const name = ref("");
   const location = ref("");
   const processing = ref(false)
@@ -66,20 +69,27 @@
   const addLocal = async () => {
     processing.value = true
     try {
-      const { error } = await client
-        .from("locals")
-        .insert([{ name: name.value, location: location.value }]);
-      if (error) throw(error);
-      else {
+      const response = await $fetch('/api/admin/locals/create', {
+        method: 'POST',
+        body: {
+          name: name.value,
+          location: location.value
+        }
+      }) as { success?: boolean; message?: string }
+
+      if (!response || !response.success) {
+        throw new Error(response?.message || "Failed to add local")
+      } else {
         message.value = 'Local added successfully'
-        showModal(SuccessModal, {message})
+        // Function callback to fetch locals in the locals component
+        props.onSuccess()
+        showModal(SuccessModal, { message: message.value })
       }
     } catch (error: any) {
-      message.value = error?.message
+      message.value = error?.data?.statusMessage || error?.statusMessage || error?.message || 'Failed to add local'
     } finally {
       processing.value = false
     }
-
   };
 
   const closeModal = () => {

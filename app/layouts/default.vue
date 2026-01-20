@@ -7,6 +7,11 @@
       v-bind="props"
       :is="content"
       @close="hideModal"
+      :class="[
+        'z-50',
+        'fixed inset-0 flex items-center justify-center',
+        'p-2 sm:p-4 md:p-8'
+      ]"
     />
   </div>
 </template>

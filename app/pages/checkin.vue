@@ -28,7 +28,7 @@
         <button
           v-for="session in activeSessions"
           :key="session.id"
-          @click="selectedSessionId = session.id"
+          @click="selectSession(session.id)"
           :class="[
             'px-4 py-2 rounded-lg font-medium transition whitespace-nowrap',
             selectedSessionId === session.id
@@ -59,7 +59,7 @@
     <div v-if="selectedSessionId" class="bg-white rounded-xl shadow p-6">
       <h2 class="text-xl font-bold text-gray-800 mb-4">Attendance Status</h2>
       <div v-if="loadingKids" class="text-center text-gray-500 py-8">Loading...</div>
-      <div v-else-if="kids.length === 0" class="text-center text-gray-500 py-8">No kids registered</div>
+      <div v-else-if="sortedKids.length === 0" class="text-center text-gray-500 py-8">No kids registered</div>
       <div v-else class="overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
@@ -72,7 +72,7 @@
           </thead>
           <tbody>
             <tr
-              v-for="kid in kids"
+              v-for="kid in sortedKids"
               :key="kid.id"
               :class="[
                 'transition',
@@ -125,288 +125,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import type { Database } from '../types/database'
-import confetti from 'canvas-confetti'
-import CheckinModal from '../components/modals/CheckinModal.vue'
+const {
+  message,
+  activeSessions,
+  selectedSessionId,
+  sortedKids,
+  loadingKids,
+  checkingIn,
+  attendanceMap,
+  handleScan,
+  manualCheckIn,
+  removeAttendance
+} = useCheckin()
 
-const { showModal, hideModal } = useCommon()
-
-const message = ref('')
-const kidName = ref('')
-const kidAvatar = ref('')
-
-const countdown = ref(5)
-const supabase = useSupabaseClient<Database>()
-
-// Session management
-const activeSessions = ref<any[]>([])
-const selectedSessionId = ref<string | null>(null)
-
-// Kids and attendance
-const kids = ref<any[]>([])
-const attendance = ref<any[]>([])
-const loadingKids = ref(false)
-const checkingIn = ref(false)
-
-// Attendance map for quick lookup
-const attendanceMap = computed(() => {
-  const map: Record<string, string> = {}
-  attendance.value.forEach((record) => {
-    map[record.kid_id] = record.checkin_time
-  })
-  return map
-})
-
-async function handleScan(kidId: string) {
-  // Use selected session
-  if (!selectedSessionId.value) {
-    message.value = 'No session selected.'
-    return
-  }
-
-  const sessionId = selectedSessionId.value
-
-  // Check if kid already checked in
-  const { data: existing } = await supabase
-    .from('attendance')
-    .select('*')
-    .eq('kid_id', kidId)
-    .eq('session_id', sessionId)
-    .maybeSingle()
-
-  if (existing) {
-    message.value = 'Already checked in.'
-    return
-  }
-
-  // Get kid name
-  const { data: kidData, error: notFound } = await supabase
-    .from('kids')
-    .select('full_name,avatar_url')
-    .eq('id', kidId)
-    .maybeSingle()
-  
-  if(notFound) {
-    message.value = 'Kid not found.'
-    return
-  }
-
-  // Save attendance
-  const { error } = await supabase.from('attendance').insert([
-    {
-      kid_id: kidId,
-      session_id: sessionId,
-      checkin_time: new Date().toISOString()
-    }
-  ])
-
-  if (error) {
-    message.value = 'Error saving attendance.'
-  } else {
-    message.value = 'Check-in successful!'
-    kidName.value = kidData?.full_name || 'Guest'
-    kidAvatar.value = kidData?.avatar_url || '~/assets/avatar.jpg'
-    showSuccessModal()
-    // Refresh attendance data
-    await fetchAttendance()
-  }
+const selectSession = (sessionId: string) => {
+  selectedSessionId.value = sessionId
+  message.value = ''
 }
-
-function showSuccessModal() {
-  countdown.value = 10
-  showModal(CheckinModal, { kidAvatar, kidName, countdown })
-
-  launchConfetti()
-
-  // Countdown timer
-  const timer = setInterval(() => {
-    countdown.value -= 1
-    if (countdown.value <= 0) {
-      clearInterval(timer)
-      hideModal()
-    }
-  }, 1000)
-}
-
-function launchConfetti() {
-  const duration = 3000
-  const end = Date.now() + duration;
-  (function frame() {
-    confetti({
-      particleCount: 4,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 }
-    })
-    confetti({
-      particleCount: 4,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 }
-    })
-
-    if (Date.now() < end) {
-      requestAnimationFrame(frame)
-    }
-  })()
-}
-
-// Fetch active sessions
-async function fetchActiveSessions() {
-  const { data, error } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('is_open', true)
-    .order('created_at', { ascending: false })
-
-  if (!error && data) {
-    activeSessions.value = data
-    if (data.length > 0 && !selectedSessionId.value) {
-      selectedSessionId.value = data[0].id
-    }
-  }
-}
-
-// Fetch all kids
-async function fetchKids() {
-  loadingKids.value = true
-  const { data, error } = await supabase
-    .from('kids')
-    .select('*')
-    .order('full_name', { ascending: true })
-
-  if (!error && data) {
-    kids.value = data
-  }
-  loadingKids.value = false
-}
-
-// Fetch attendance for selected session
-async function fetchAttendance() {
-  if (!selectedSessionId.value) {
-    attendance.value = []
-    return
-  }
-
-  const { data, error } = await supabase
-    .from('attendance')
-    .select('*')
-    .eq('session_id', selectedSessionId.value)
-
-  if (!error && data) {
-    attendance.value = data
-  }
-}
-
-// Manual check-in function
-async function manualCheckIn(kidId: string, fullName: string) {
-  if (!selectedSessionId.value || checkingIn.value) return
-
-  checkingIn.value = true
-
-  try {
-    // Check if already checked in
-    const { data: existing } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('kid_id', kidId)
-      .eq('session_id', selectedSessionId.value)
-      .maybeSingle()
-
-    if (existing) {
-      message.value = `${fullName} is already checked in.`
-      return
-    }
-
-    // Get kid avatar
-    const { data: kidData } = await supabase
-      .from('kids')
-      .select('avatar_url')
-      .eq('id', kidId)
-      .maybeSingle()
-
-    // Insert attendance record
-    const { error } = await supabase.from('attendance').insert([
-      {
-        kid_id: kidId,
-        session_id: selectedSessionId.value,
-        checkin_time: new Date().toISOString()
-      }
-    ])
-
-    if (error) {
-      message.value = `Error checking in ${fullName}.`
-      console.error(error)
-    } else {
-      message.value = `${fullName} checked in successfully!`
-      kidName.value = fullName
-      kidAvatar.value = kidData?.avatar_url || '~/assets/avatar.jpg'
-      showSuccessModal()
-      // Refresh attendance data
-      await fetchAttendance()
-    }
-  } finally {
-    checkingIn.value = false
-  }
-}
-
-async function removeAttendance(kidId: string) {
-  if (!selectedSessionId.value || checkingIn.value) return
-
-  checkingIn.value = true
-
-  try {
-    // Check if already checked in
-    const { data: existing } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('kid_id', kidId)
-      .eq('session_id', selectedSessionId.value)
-      .maybeSingle()
-
-    if (!existing) {
-      message.value = `record not found.`
-      return
-    }
-
-    // Insert attendance record
-    const { error } = await supabase.from('attendance')
-    .delete()
-    .eq('kid_id', kidId)
-
-    if (error) {
-      message.value = `Error checking removing record`
-      console.error(error)
-    } else {
-      await fetchAttendance()
-    }
-  } finally {
-    checkingIn.value = false
-  }
-}
-
-// Format time for display
-function formatTime(timestamp: string) {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true 
-  })
-}
-
-// Watch for session changes
-watch(selectedSessionId, () => {
-  fetchAttendance()
-})
-
-// Initialize on mount
-onMounted(async () => {
-  await fetchActiveSessions()
-  await fetchKids()
-  await fetchAttendance()
-})
 </script>
 
 <style scoped>

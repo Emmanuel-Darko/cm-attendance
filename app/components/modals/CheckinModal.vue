@@ -15,10 +15,14 @@
 
             <!-- Content -->
             <div class="rounded-lg w-full max-w-lg relative z-50 text-center">
-                <img
+                <NuxtImg
                     :src="kidAvatar"
                     alt="Kid Avatar"
                     class="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-green-500 shadow"
+                    width="80"
+                    height="80"
+                    format="webp"
+                    quality="30"
                 />
                 
                 <p class="text-gray-700 mb-4">

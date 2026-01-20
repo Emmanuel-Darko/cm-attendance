@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import AddTeacherModal from '~/components/modals/AddTeacherModal.vue'
 
-const { data: teachers } = await useFetch('/api/admin/teachers')
+const { data: teachers } = await useFetch('/api/admin/teachers/list')
 const { showModal } = useCommon()
 
 const grouped = computed(() => {
   const out: Record<string, any[]> = {}
-  teachers.value?.forEach(t => {
-    const localName = t.locals?.name || 'Unassigned'
+  const teacherList = Array.isArray(teachers.value) ? teachers.value : []
+  teacherList.forEach((t: any) => {
+    const localName = t?.locals?.name || 'Unassigned'
     if (!out[localName]) out[localName] = []
     out[localName].push(t)
   })

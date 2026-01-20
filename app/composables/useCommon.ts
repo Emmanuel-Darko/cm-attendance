@@ -13,17 +13,12 @@ export const useCommon = () => {
         content.value = null;
         props.value = {};
     }
-    const generateAvatar = ({name, gender} : {name: string, gender: string}) => {
-        if(gender == GENDER.male)
-            return `https://avatar.iran.liara.run/public/boy?username=${name.replace(/\s+/g, '')}`
-        if(gender == GENDER.female)
-            return `https://avatar.iran.liara.run/public/girl?username=${name.replace(/\s+/g, '')}`
-    }
-    const getAge = (dob: Date) => {
-        const currentYear = new Date().getFullYear()
-        const yearOfBirth = new Date(dob).getFullYear()
-        return currentYear - yearOfBirth
-    }
+
+    const isAdminRoute = computed(() => {
+        const route = useRoute()
+        const { user } = useAuth()
+        return route.path.includes('admin') && user.value?.role === USER_ROLES.admin
+    })
 
     return {
         isVisible,
@@ -31,7 +26,6 @@ export const useCommon = () => {
         props,
         showModal,
         hideModal,
-        generateAvatar,
-        getAge
+        isAdminRoute,
     }
 }

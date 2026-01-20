@@ -13,25 +13,28 @@ export const useAttendance = async () => {
   const gContact = useState<string>("attendance_gContact", () => "");
   const selectedRecord = useState<string | undefined>("attendance_selectedRecord", () => undefined);
   const processing = ref<boolean>(false)
+  const { isAdminRoute } = useCommon()
+  const { showModal } = useCommon()
 
-  // composable imports
-  const { showModal, generateAvatar } = useCommon()
+  const localId = computed(() => useAuth().user.value.local_id)
 
   const getAttendance = async () => {
-    const { data, error } = await client
-      .from("attendance")
-      .select("*")
-      .order("checkin_time", { ascending: false });
-
-    if (error) throw error;
-    return data;
+    const res = await $fetch('/api/admin/attendance/list', {
+      method: 'POST',
+      body: {
+        local_id: localId.value
+      }
+    });
+    return res;
   };
 
   const getRecords = async () => {
-    const { data, error } = await client
-      .from("kids")
-      .select("*")
-      .eq("local_id", useAuth().user.value.local_id);
+    let query = client.from("kids").select("*");
+    query = query.order("created_at", { ascending: false });
+    if (!isAdminRoute.value) { // if not adminRoute, retrieve per the user(teacher)'s local
+      query = query.eq("local_id", localId.value);
+    }
+    const { data, error } = await query;
 
     if (error) throw error;
     records.value = data;
@@ -40,32 +43,44 @@ export const useAttendance = async () => {
 
   const addKid = async () => {
     processing.value = true
-    const { error } = await client
-      .from("kids")
-      .insert([
-        { 
+    try {
+      const { success, added_to_session } = await $fetch('/api/admin/kids/create', {
+        method: 'POST',
+        body: {
           full_name: name.value, 
           dob: dob.value, 
           gender: gender.value,
-          local_id: local_id.value || useAuth().user.value.local_id,
-          avatar_url: generateAvatar({name: name.value, gender: gender.value}),
+          local_id: local_id.value || localId.value,
+          avatar_url: generateAvatar({ name: name.value, gender: gender.value }),
           guardian_name: gName.value,
           guardian_contact: gContact.value
-        },
-      ]);
+        }
+      });
 
-    message.value = error ? "Error adding kid" : "Kid added successfully";
-    if (!error) {
-      name.value = "";
-      dob.value = null;
-      gender.value = "";
-      local_id.value = ""
-      gName.value = "";
-      gContact.value = ""
+      if (success) {
+        if (added_to_session) {
+          message.value = "Kid added and included in the current session";
+        } else {
+          message.value = "Kid added successfully";
+        }
+        name.value = "";
+        dob.value = null;
+        gender.value = "";
+        local_id.value = "";
+        gName.value = "";
+        gContact.value = "";
+      } else {
+        message.value = "Error adding kid";
+      }
+
+      await getRecords();
+      showModal(SuccessModal, { message });
+    } catch (err: any) {
+      message.value = `Error adding kid: ${err?.data?.message || err.message || err}`;
+      showModal(SuccessModal, { message });
+    } finally {
+      processing.value = false;
     }
-    await getRecords()
-    processing.value = false
-    showModal(SuccessModal, {message})
   };
 
   const editKid = async (kid_id: string) => {
@@ -74,7 +89,6 @@ export const useAttendance = async () => {
       return;
     }
     processing.value = true
-    let errorInstance: any = null;
     try {
       const { error } = await client
         .from("kids")
@@ -82,14 +96,13 @@ export const useAttendance = async () => {
           full_name: name.value,
           dob: dob.value,
           gender: gender.value,
-          local_id: local_id.value || useAuth().user.value.local_id,
+          local_id: local_id.value || localId.value,
           avatar_url: generateAvatar({name: name.value, gender: gender.value}),
           guardian_name: gName.value,
           guardian_contact: gContact.value
         })
         .eq("id", kid_id);
 
-      errorInstance = error;
       message.value = error ? "Error editing kid" : "Kid updated successfully";
       await getRecords();
       showModal(SuccessModal, {message})
@@ -102,9 +115,7 @@ export const useAttendance = async () => {
         gContact.value = "";
       }
     } catch (err: any) {
-      errorInstance = err;
       message.value = `Error editing kid: ${err?.message || err}`;
-      // showModal(SuccessModal, {message});
     } finally {
       processing.value = false;
     }

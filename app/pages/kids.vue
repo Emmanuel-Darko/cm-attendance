@@ -8,11 +8,13 @@
       <img :src="qrUrl" alt="QR Code" class="rounded shadow-lg w-40 h-40 object-contain border border-gray-200 bg-white p-2" />
     </div>
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow p-8">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Kids Records</h1>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h5 class="text-xl sm:text-2xl font-semibold text-blue-700 text-center sm:text-left">
+          Children Directory <span class="text-blue-600">({{ filtered.length }})</span>
+        </h5>
         <button
           @click="showModal(AddKidModal, {isEditing: false})"
-          class="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow hover:bg-blue-700 transition"
+          class="bg-blue-600 text-white px-4 py-2 sm:px-6 sm:py-2 rounded font-semibold shadow hover:bg-blue-700 transition w-full sm:w-auto"
         >
           Add New Kid
         </button>
@@ -37,6 +39,11 @@
               </tr>
             </thead>
             <tbody>
+              <tr v-if="filtered.length === 0">
+                <td colspan="4" class="p-6 text-center text-gray-500">
+                  No kids found.
+                </td>
+              </tr>
               <tr
                 v-for="item in filtered"
                 :key="item.id"
@@ -93,9 +100,8 @@
   import AddKidModal from '~/components/modals/AddKidModal.vue'
   import DeleteKidModal from '~/components/modals/DeleteKidModal.vue'
 
-  const { name, dob, gender, local_id, gName, gContact, message, records, selectedRecord, getRecords } = await useAttendance()
-  const { showModal, getAge } = useCommon()
-  const { user } = useAuth()
+  const { name, dob, gender, local_id, gName, gContact, records, selectedRecord, getRecords } = await useAttendance()
+  const { showModal } = useCommon()
   const qrUrl = ref<string>(scanImg)
 
   const loading = ref(true)
@@ -108,11 +114,6 @@
       a.id?.toLowerCase().includes(search.value.toLowerCase())
     )
   )
-
-  const isErrorMessage = computed(() => {
-    const msg = message.value?.toLowerCase() || '';
-    return msg.includes('error') || msg.includes('fail') || msg.includes('invalid');
-  })
 
   const generateCode = async(id: string) => {
     qrUrl.value = await useQrGenerator(id)

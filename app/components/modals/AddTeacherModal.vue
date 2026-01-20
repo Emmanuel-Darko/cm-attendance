@@ -32,7 +32,11 @@
               required
             >
               <option value="">Select Local</option>
-              <option v-for="local in locals" :key="local.id" :value="local.id">
+              <option
+                v-for="local in (localsList ?? []) as Locals[]"
+                :key="local.id"
+                :value="local.id"
+              >
                 {{ local.name }}
               </option>
             </select>
@@ -72,25 +76,21 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { onMounted } from 'vue';
 import SuccessModal from './SuccessModal.vue';
-import type { locals } from '~/types/database';
+import type { locals as Locals } from '~/types/database';
 
 const { showModal, hideModal } = useCommon();
-const client = useSupabaseClient();
 const name = ref<string>("");
 const email = ref<string>("");
 const localId = ref<string>("");
 const role = ref<'admin'|'teacher'>("teacher");
-const locals = ref<locals[]>([]);
 const processing = ref<boolean>(false);
 
 const addTeacher = async () => {
   processing.value = true
 
   try {
-    const response = await $fetch('/api/admin/addTeacher', {
+    const response = await $fetch('/api/admin/teachers/create', {
       method: 'POST',
       credentials: 'include',
       body: {
@@ -99,10 +99,10 @@ const addTeacher = async () => {
         local_id: localId.value,
         role: role.value
       }
-    })
+    }) as { success?: boolean; message?: string };
 
-    if (response?.success) {
-      showModal(SuccessModal, { message: response.message })
+    if (response && response.success) {
+      showModal(SuccessModal, { message: response.message ?? 'Teacher added successfully.' })
     
       name.value = ''
       email.value = ''
@@ -122,10 +122,7 @@ const addTeacher = async () => {
   }
 };
 
-onMounted(async () => {
-  const { data } = await client.from("locals").select("id, name");
-  locals.value = data || [];
-});
+const { data: localsList } = await useFetch<Locals[]>('/api/admin/locals/list');
 
 const closeModal = () => {
   hideModal();
