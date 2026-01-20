@@ -1,9 +1,9 @@
 [build]
-  command = "npm run build"
+  command = "npx nuxi build"
   publish = ".output/public"
 
 [functions]
-  directory = ".output/server/functions"
+  directory = ".output/server"
 
 [[redirects]]
   from = "/api/*"
