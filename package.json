@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npx nuxi build",
-    "dev": "npx nuxi dev",
+    "build": "nuxi build",
+    "dev": "nuxi dev",
     "preview": "node .output/server/index.mjs",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",
