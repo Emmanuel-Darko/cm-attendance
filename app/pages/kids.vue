@@ -100,7 +100,7 @@
   import AddKidModal from '~/components/modals/AddKidModal.vue'
   import DeleteKidModal from '~/components/modals/DeleteKidModal.vue'
 
-  const { name, dob, gender, local_id, gName, gContact, records, selectedRecord, getRecords } = await useAttendance()
+  const { name, dob, gender, local_id, gName, gContact, localKids, selectedRecord, getLocalKids } = await useAttendance()
   const { showModal } = useCommon()
   const qrUrl = ref<string>(scanImg)
 
@@ -109,7 +109,7 @@
   const search = ref('')
 
   const filtered = computed(() =>
-    records.value.filter(a =>
+    localKids.value.filter(a =>
       a.full_name?.toLowerCase().includes(search.value.toLowerCase()) ||
       a.id?.toLowerCase().includes(search.value.toLowerCase())
     )
@@ -148,7 +148,7 @@
 
   onMounted(async () => {
     try {
-      await getRecords()
+      await getLocalKids()
     } catch (err) {
       error.value = err
     } finally {

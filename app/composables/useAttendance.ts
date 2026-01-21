@@ -8,7 +8,8 @@ export const useAttendance = async () => {
   const gender = useState<string>("attendance_gender", () => "");
   const local_id = useState<string>("attendance_local", () => "");
   const message = useState<string>("attendance_message", () => "");
-  const records = useState<any[]>("attendance_records", () => []);
+  const localKids = useState<any[]>("localKids", () => []);
+  const adminKids = useState<any[]>("localKids", () => []);
   const gName = useState<string>("attendance_gName", () => "");
   const gContact = useState<string>("attendance_gContact", () => "");
   const selectedRecord = useState<string | undefined>("attendance_selectedRecord", () => undefined);
@@ -28,18 +29,24 @@ export const useAttendance = async () => {
     return res;
   };
 
-  const getRecords = async () => {
-    let query = client.from("kids").select("*");
-    query = query.order("created_at", { ascending: false });
-    if (!isAdminRoute.value) { // if not adminRoute, retrieve per the user(teacher)'s local
-      query = query.eq("local_id", localId.value);
+  const getLocalKids = async () => {
+    const body: any = {}
+    if (!isAdminRoute.value) {
+      body.local_id = localId.value
     }
-    const { data, error } = await query;
+    const data = await $fetch('/api/admin/kids/list', {
+      method: 'POST',
+      body,
+    })
+    localKids.value = data
+    return data
+  }
 
-    if (error) throw error;
-    records.value = data;
-    return data;
-  };
+  const getAdminKids = async () => {
+    const data = await $fetch('/api/admin/kids/adminList')
+    localKids.value = data
+    return data
+  }
 
   const addKid = async () => {
     processing.value = true
@@ -73,7 +80,7 @@ export const useAttendance = async () => {
         message.value = "Error adding kid";
       }
 
-      await getRecords();
+      await getLocalKids();
       showModal(SuccessModal, { message });
     } catch (err: any) {
       message.value = `Error adding kid: ${err?.data?.message || err.message || err}`;
@@ -104,7 +111,7 @@ export const useAttendance = async () => {
         .eq("id", kid_id);
 
       message.value = error ? "Error editing kid" : "Kid updated successfully";
-      await getRecords();
+      await getLocalKids();
       showModal(SuccessModal, {message})
 
       if (!error) {
@@ -133,7 +140,7 @@ export const useAttendance = async () => {
       .eq("id", kid_id)
       .then(({ error }) => {
         message.value = error ? "Error deleting kid" : "Successfully deleted kid!";
-        getRecords();
+        getLocalKids();
         processing.value = false
         showModal(SuccessModal, {message})
       });
@@ -145,13 +152,15 @@ export const useAttendance = async () => {
     gender,
     message,
     local_id,
-    records,
+    localKids,
+    adminKids,
     gName,
     gContact,
     selectedRecord,
     processing,
     getAttendance,
-    getRecords,
+    getLocalKids,
+    getAdminKids,
     addKid,
     editKid,
     deleteKid

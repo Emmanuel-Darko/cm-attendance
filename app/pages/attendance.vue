@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Database } from '~/types/database'
 
-const { records, getAttendance, getRecords } = await useAttendance()
+const { localKids, getAttendance, getLocalKids } = await useAttendance()
 const { sessions, fetchSessions } = useSessions()
 
 const loading = ref(true)
@@ -23,7 +23,7 @@ const localId = computed(() => useAuth().user?.value?.local_id)
 */
 const kidMap = computed(() => {
   const map = new Map<string, Database['public']['Tables']['kids']['Row']>()
-  records.value.forEach(kid => map.set(kid.id, kid))
+  localKids.value.forEach(kid => map.set(kid.id, kid))
   return map
 })
 
@@ -116,7 +116,7 @@ onMounted(async () => {
   try {
     attendance.value = await getAttendance()
     await fetchSessions()
-    await getRecords()
+    await getLocalKids()
     sessionKids.value = await $fetch('/api/admin/kids/session', {
       method: 'POST',
       body: { local_id: localId.value }

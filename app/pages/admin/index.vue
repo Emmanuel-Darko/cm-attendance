@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { data: locals } = await useFetch('/api/admin/locals/list')
 const { data: teachers } = await useFetch('/api/admin/teachers/list')
-const { data: kids } = await useFetch('/api/admin/kids/list')
+const { data: kids } = await useFetch('/api/admin/kids/adminList')
 </script>
 
 <template>

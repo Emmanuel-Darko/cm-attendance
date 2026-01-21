@@ -7,7 +7,7 @@ import DeleteKidModal from '~/components/modals/DeleteKidModal.vue'
 
 // State
 const { data: locals } = await useFetch<LocalsType[]>('/api/admin/locals/list')
-const { name, dob, gender, local_id, gName, gContact, records, selectedRecord, getRecords } = await useAttendance()
+const { name, dob, gender, local_id, gName, gContact, adminKids, selectedRecord, getAdminKids } = await useAttendance()
 const { showModal } = useCommon()
 
 const loading = ref(true)
@@ -18,7 +18,7 @@ const qrUrl = ref<string>(scanImg)
 
 // Computed filtered kids
 const filteredKids = computed(() => {
-  let list = records.value || []
+  let list = adminKids.value || []
 
   // Filter by selected local
   if (selectedLocal.value) {
@@ -70,7 +70,7 @@ const copyId = (id: string) => navigator.clipboard.writeText(id)
 // Initial data load
 onMounted(async () => {
   try {
-    await getRecords()
+    await getAdminKids()
   } catch (err) {
     error.value = err
   } finally {

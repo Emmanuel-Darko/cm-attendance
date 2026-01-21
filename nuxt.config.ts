@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'netlify'
   },
-  ssr: true,
+  ssr: false,
   supabase: {
     redirect: false
   },
