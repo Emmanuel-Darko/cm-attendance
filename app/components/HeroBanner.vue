@@ -1,75 +1,48 @@
 <template>
-  <div
-    class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-lg flex flex-col lg:flex-row items-center gap-6 text-center lg:text-left"
-  >
-    <!-- Text Section -->
-    <div class="flex-1 order-2 lg:order-1">
-      <div class="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-2 mb-3">
-        <div class="rounded-full bg-indigo-100 p-3 shadow flex items-center justify-center">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="text-indigo-700">
-            <path
-              d="M12 12a3 3 0 100-6 3 3 0 000 6zM4 20a4 4 0 018 0"
-              stroke="#5b21b6"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M20 20a3 3 0 00-3-3h-1"
-              stroke="#5b21b6"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </div>
-
-        <h1
-          class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-indigo-700 leading-tight"
-        >
-          Welcome to
-          <span class="block">Children’s Ministry Check-In</span>
-        </h1>
-      </div>
-
-      <p class="text-gray-600 mt-2 max-w-xl mx-auto lg:mx-0 text-base hidden lg:block">
-        Making check-in fun and easy for kids and parents — quick QR scanning, simple session management and friendly reports.
-      </p>
-
-      <div class="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-        <button
-          @click="$emit('cta')"
-          class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full shadow-md transition w-full sm:w-auto"
-        >
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5 12h14M12 5l7 7-7 7"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="font-semibold">{{ ctaText }}</span>
-        </button>
-        <NuxtLink
-          to="/sessions"
-          class="text-sm text-gray-600 hover:text-gray-800 underline"
-        >
-          Manage Sessions
-        </NuxtLink>
-      </div>
+  <section class="w-full px-3 py-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-400 shadow flex flex-col items-center justify-center gap-4 min-h-[110px]">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center justify-center rounded-full bg-white/80 border border-indigo-200 p-2 shadow-sm">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="9" r="3" stroke="#6366f1" stroke-width="1.4" />
+          <path d="M5 20a7 7 0 0 1 14 0" stroke="#6366f1" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="text-sm text-white/90 font-medium">Try quick check-ins</span>
     </div>
-
-    <!-- Illustration -->
-    <div class="order-1 lg:order-2 w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56 mb-4 lg:mb-0">
-      <img
-        src="../assets/kids-ballon.png"
-        alt="Kids illustration"
-        class="w-full h-full object-contain"
-      />
+    <h1 class="text-[1.5rem] sm:text-2xl font-bold text-white text-center leading-tight">
+      Children’s Ministry Check-In
+    </h1>
+    <p class="text-sm text-indigo-100/90 text-center max-w-sm">
+      Effortless check-in for kids & parents. Fast, simple & happy.
+    </p>
+    <div class="flex w-full gap-2 justify-center">
+      <button
+        @click="$emit('cta')"
+        class="flex items-center justify-center bg-white/95 hover:bg-indigo-50 text-indigo-700 font-semibold rounded-full px-6 py-2 transition shadow w-full sm:w-auto text-base"
+      >
+        <svg class="w-4 h-4 mr-1 text-indigo-500" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M5 12h14M12 5l7 7-7 7"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>{{ ctaText }}</span>
+      </button>
+      <NuxtLink
+        to="/sessions"
+        class="flex items-center text-indigo-100 hover:text-white underline underline-offset-2 transition text-sm font-medium px-2 min-w-max"
+      >
+        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2h2"/>
+          <rect x="7" y="4" width="10" height="4" rx="1" stroke="currentColor"/>
+        </svg>
+        Sessions
+      </NuxtLink>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup lang="ts">

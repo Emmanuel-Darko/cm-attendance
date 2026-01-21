@@ -45,16 +45,17 @@
           class="origin-top-right absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white ring-1 ring-black/5 focus:outline-none z-50"
         >
           <div>
-            <button
+            <NuxtLink
+              to="/profile"
+              @click="menuOpen = false"
               class="w-full flex items-center text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition rounded gap-2"
-              disabled
             >
               <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
                 <path d="M4 20c0-4 8-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="2" fill="none"/>
               </svg>
               <span>Profile</span>
-            </button>
+            </NuxtLink>
             <button
               class="w-full flex items-center text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition rounded gap-2"
               disabled

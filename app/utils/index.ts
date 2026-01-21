@@ -20,25 +20,22 @@ export const formatTime = (timestamp: string) => {
   })
 }
 
-export const generateAvatar = ({name, gender} : {name: string, gender: string}) => {
-    if(gender == GENDER.male)
-        return `https://avatar.iran.liara.run/public/boy?username=${name.replaceAll(/\s+/g, '')}`
-    if(gender == GENDER.female)
-        return `https://avatar.iran.liara.run/public/girl?username=${name.replaceAll(/\s+/g, '')}`
+export const generateAvatar = ({ name, gender }: { name: string, gender: string }) => {
+  if (gender == GENDER.male)
+    return `https://avatar.iran.liara.run/public/boy?username=${name.replaceAll(/\s+/g, '')}`
+  if (gender == GENDER.female)
+    return `https://avatar.iran.liara.run/public/girl?username=${name.replaceAll(/\s+/g, '')}`
 }
 
 export const getAge = (dob: Date) => {
-    const currentYear = new Date().getFullYear()
-    const yearOfBirth = new Date(dob).getFullYear()
-    return currentYear - yearOfBirth
+  const currentYear = new Date().getFullYear()
+  const yearOfBirth = new Date(dob).getFullYear()
+  return currentYear - yearOfBirth
 }
 
 export const leastYear = computed(() => {
-  return new Date().getFullYear() - 13-1 //-1 safe range (for kids now turned 14)
+  return new Date().getFullYear() - 13 - 1 //-1 safe range (for kids now turned 14)
 })
-
-// Note: You cannot use Vue's `computed` in a plain utils file because it requires component setup context.
-// Instead, export a function that does the same check at call time.
 
 export function isAdminRoute() {
   const route = useRoute();

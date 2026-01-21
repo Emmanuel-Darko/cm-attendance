@@ -61,29 +61,86 @@
       <div v-if="loadingKids" class="text-center text-gray-500 py-8">Loading...</div>
       <div v-else-if="sortedKids.length === 0" class="text-center text-gray-500 py-8">No kids registered</div>
       <div v-else class="overflow-x-auto">
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="bg-indigo-100">
-              <th class="p-3 border-b text-left text-gray-700">Name</th>
-              <th class="p-3 border-b text-center text-gray-700">Status</th>
-              <th class="p-3 border-b text-center text-gray-700">Check-in Time</th>
-              <th class="p-3 border-b text-center text-gray-700">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
+        <div class="w-full">
+          <!-- Responsive Table for md+ screens -->
+          <table class="w-full border-collapse hidden md:table">
+            <thead>
+              <tr class="bg-indigo-100">
+                <th class="p-3 border-b text-left text-gray-700">Name</th>
+                <th class="p-3 border-b text-center text-gray-700">Status</th>
+                <th class="p-3 border-b text-center text-gray-700">Check-in Time</th>
+                <th class="p-3 border-b text-center text-gray-700">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="kid in sortedKids"
+                :key="kid.id"
+                :class="[
+                  'transition',
+                  attendanceMap[kid.id] ? 'bg-green-50' : 'bg-red-50'
+                ]"
+              >
+                <td class="p-3 border-b">{{ kid.full_name }}</td>
+                <td class="p-3 border-b text-center">
+                  <span
+                    :class="[
+                      'inline-block px-3 py-1 rounded-full text-sm font-semibold',
+                      attendanceMap[kid.id]
+                        ? 'bg-green-200 text-green-800'
+                        : 'bg-red-200 text-red-800'
+                    ]"
+                  >
+                    {{ attendanceMap[kid.id] ? 'Present' : 'Absent' }}
+                  </span>
+                </td>
+                <td class="p-3 border-b text-center text-gray-600">
+                  {{ attendanceMap[kid.id] ? formatTime(attendanceMap[kid.id] || '') : '-' }}
+                </td>
+                <td class="p-3 border-b text-center">
+                  <button
+                    v-if="!attendanceMap[kid.id]"
+                    @click="manualCheckIn(kid.id, kid.full_name)"
+                    :disabled="checkingIn"
+                    class="inline-flex items-center gap-2 px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-full shadow hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-4 h-4 mr-1 -ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Mark Present
+                  </button>
+                  <button
+                    v-else
+                    title="Remove"
+                    @click="removeAttendance(kid.id)"
+                    :disabled="checkingIn"
+                    class="inline-flex items-center gap-1 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M6 18L18 6" />
+                    </svg>
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Card List for mobile screens -->
+          <div class="flex flex-col gap-3 md:hidden">
+            <div
               v-for="kid in sortedKids"
               :key="kid.id"
               :class="[
-                'transition',
+                'rounded-lg shadow px-4 py-3 flex flex-col transition',
                 attendanceMap[kid.id] ? 'bg-green-50' : 'bg-red-50'
               ]"
             >
-              <td class="p-3 border-b">{{ kid.full_name }}</td>
-              <td class="p-3 border-b text-center">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="font-semibold text-gray-900 text-base">{{ kid.full_name }}</div>
                 <span
                   :class="[
-                    'inline-block px-3 py-1 rounded-full text-sm font-semibold',
+                    'px-2 py-0.5 rounded-full text-xs font-semibold',
                     attendanceMap[kid.id]
                       ? 'bg-green-200 text-green-800'
                       : 'bg-red-200 text-red-800'
@@ -91,34 +148,36 @@
                 >
                   {{ attendanceMap[kid.id] ? 'Present' : 'Absent' }}
                 </span>
-              </td>
-              <td class="p-3 border-b text-center text-gray-600">
-                {{ attendanceMap[kid.id] ? formatTime(attendanceMap[kid.id] || '') : '-' }}
-              </td>
-              <td class="p-3 border-b text-center">
+              </div>
+              <div class="flex gap-2 mt-1">
                 <button
                   v-if="!attendanceMap[kid.id]"
                   @click="manualCheckIn(kid.id, kid.full_name)"
                   :disabled="checkingIn"
-                  class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[90px]"
                 >
                   Mark Present
                 </button>
-                <div v-else class="flex items-center justify-center space-x-2">
-                  <span class="text-green-600 font-medium">✓ Checked in</span>
-                  <button
-                    title="Remove"
-                    @click="removeAttendance(kid.id)"
-                    :disabled="checkingIn"
-                    class="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    x
-                  </button>
+                <button
+                  v-else
+                  title="Remove"
+                  @click="removeAttendance(kid.id)"
+                  :disabled="checkingIn"
+                  class="flex items-center justify-center px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow font-semibold min-w-[90px]"
+                >
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M6 18L18 6" />
+                  </svg>
+                  Remove
+                </button>
+                <div class="flex items-center text-xs text-gray-600 min-w-[90px] justify-center bg-gray-100 rounded px-2 py-1 ml-2">
+                  <span v-if="attendanceMap[kid.id]">{{ formatTime(attendanceMap[kid.id] || '') }}</span>
+                  <span v-else>-</span>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

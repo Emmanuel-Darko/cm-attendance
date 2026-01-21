@@ -63,7 +63,7 @@ function groupBySession(data: any[]) {
     return {
       session_id,
       attendance: info.present.sort(
-        (a, b) =>
+        (a: { checkin_time: string | number | Date }, b: { checkin_time: string | number | Date }) =>
           new Date(a.checkin_time).getTime() -
           new Date(b.checkin_time).getTime()
       ),
@@ -166,16 +166,16 @@ function exportToCSV() {
   groupBySession(filteredAttendance.value).forEach(session => {
     const s = findSession(session.session_id)
 
-    session.attendance.forEach(item => {
+    session.attendance.forEach((item:any) => {
       const kid = findKid(item.kid_id)
       rows.push([
         s?.title ?? 'Unknown',
         s?.date ?? '',
         'Present',
         kid?.full_name ?? '',
-        getAge(kid?.dob) ?? '',
+        getAge(kid?.dob ? new Date(kid.dob) : undefined as unknown as Date) ?? '',
         item.kid_id,
-        new Date(item.checkin_time).toLocaleString(),
+        item.checkin_time ? new Date(item.checkin_time).toLocaleString() : '',
       ])
     })
 
@@ -184,9 +184,9 @@ function exportToCSV() {
         s?.title ?? 'Unknown',
         s?.date ?? '',
         'Absent',
-        kid.full_name,
-        getAge(kid.dob) ?? '',
-        kid.id,
+        kid?.full_name ?? '',
+        (getAge(kid?.dob ? new Date(kid.dob) : undefined as unknown as Date) ?? '').toString(),
+        kid?.id ?? '',
         '-',
       ])
     })
@@ -210,21 +210,21 @@ function exportToExcel() {
     const s = findSession(session.session_id)
     html += `<tr><th colspan="4">${s?.title} (${s?.date})</th></tr>`
 
-    session.attendance.forEach(item => {
+    session.attendance.forEach((item: any) => {
       const kid = findKid(item.kid_id)
       html += `<tr>
           <td>Present</td>
-          <td>${kid?.full_name}</td>
-          <td>${getAge(kid?.dob)}</td>
-          <td>${new Date(item.checkin_time).toLocaleTimeString()}</td>
+          <td>${kid?.full_name ?? ''}</td>
+          <td>${kid?.dob ? getAge(new Date(kid.dob)) : ''}</td>
+          <td>${item.checkin_time ? new Date(item.checkin_time).toLocaleTimeString() : ''}</td>
         </tr>`
     })
 
     session.absentKids.forEach(kid => {
       html += `<tr>
           <td>Absent</td>
-          <td>${kid.full_name}</td>
-          <td>${getAge(kid.dob)}</td>
+          <td>${kid?.full_name ?? ''}</td>
+          <td>${kid?.dob ? getAge(new Date(kid.dob)) : ''}</td>
           <td>-</td>
         </tr>`
     })
@@ -246,7 +246,7 @@ function exportToPDF() {
   groupBySession(filteredAttendance.value).forEach(session => {
     const s = findSession(session.session_id)
     html += `<h2>${s?.title} (${s?.date})</h2>`
-    html += `<p>Present: ${session.attendance.length} / ${session.totalKids}</p>`
+    html += `<p>Present: ${session.attendance.length} / ${session.total}</p>`
   })
 
   const win = window.open('', '_blank')
