@@ -56,15 +56,16 @@
               </svg>
               <span>Profile</span>
             </NuxtLink>
-            <button
+            <NuxtLink
+              to="/settings"
+              @click="menuOpen = false"
               class="w-full flex items-center text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition rounded gap-2"
-              disabled
             >
               <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.4-2a1 1 0 0 0 .2-2l-1.1-.2a7.09 7.09 0 0 0-.6-1.5l.7-.9a1 1 0 1 0-1.4-1.4l-.9.7c-.5-.3-1-.5-1.5-.6l-.2-1.1a1 1 0 0 0-2 0l-.2 1.1c-.5.1-1 .3-1.5.6l-.9-.7a1 1 0 1 0-1.4 1.4l.7.9c-.3.5-.5 1-.6 1.5l-1.1.2a1 1 0 0 0 0 2l1.1.2c.1.5.3 1 .6 1.5l-.7.9a1 1 0 1 0 1.4 1.4l.9-.7c.5.3 1 .5 1.5.6l.2 1.1a1 1 0 0 0 2 0l.2-1.1c.5-.1 1-.3 1.5-.6l.9.7a1 1 0 1 0 1.4-1.4l-.7-.9c.3-.5.5-1 .6-1.5l1.1-.2z"/>
               </svg>
               <span>Settings</span>
-            </button>
+            </NuxtLink>
             <button
               @click="handleLogout"
               class="w-full flex items-center text-left px-4 py-3 text-red-600 hover:bg-red-100 transition rounded gap-2"
