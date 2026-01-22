@@ -42,3 +42,28 @@ export function isAdminRoute() {
   const { user } = useAuth();
   return route.path.includes('admin') && user.value?.role === USER_ROLES.admin;
 }
+
+//Confetti for check in
+import confetti from 'canvas-confetti'
+export function launchConfetti() {
+  const duration = 3000
+  const end = Date.now() + duration
+  ;(function frame() {
+    confetti({
+      particleCount: 4,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 }
+    })
+    confetti({
+      particleCount: 4,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 }
+    })
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame)
+    }
+  })()
+}

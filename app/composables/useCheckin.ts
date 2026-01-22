@@ -1,5 +1,4 @@
 import { ref, computed, watch, onMounted } from 'vue'
-import confetti from 'canvas-confetti'
 import CheckinModal from '~/components/modals/CheckinModal.vue'
 
 export const useCheckin = () => {
@@ -62,30 +61,39 @@ export const useCheckin = () => {
       return
     }
 
-    const sessionId = selectedSessionId.value
+    // Optimize lookup by using a Set if many kids, for now keep as simple find
+    const foundKid = kids.value.find(k => k.id === kidId)
+    if (!foundKid) {
+      message.value = 'Kid not available'
+      return
+    }
 
-    const res = await $fetch<{
-      success: boolean
-      message: string
-      kid?: { full_name: string; avatar_url: string | null }
-      code?: string
-    }>('/api/admin/attendance/checkin', {
-      method: 'POST',
-      body: {
-        kid_id: kidId,
-        session_id: sessionId,
-        local_id: localId.value
-      }
-    })
+    try {
+      const { success, message: msg, kid } = await $fetch<{
+        success: boolean
+        message: string
+        kid?: { full_name: string; avatar_url: string | null }
+      }>('/api/admin/attendance/checkin', {
+        method: 'POST',
+        body: {
+          kid_id: kidId,
+          session_id: selectedSessionId.value,
+          local_id: localId.value
+        }
+      })
 
-    message.value = res.message
+      message.value = msg
 
-    if (!res.success || !res.kid) return
+      if (!success || !kid) return
 
-    kidName.value = res.kid.full_name || 'Guest'
-    kidAvatar.value = res.kid.avatar_url || '~/assets/avatar.jpg'
-    showSuccessModal()
-    await fetchAttendance()
+      kidName.value = kid.full_name || 'Guest'
+      kidAvatar.value = kid.avatar_url || '~/assets/avatar.jpg'
+      showSuccessModal()
+      await fetchAttendance()
+    } catch (error) {
+      message.value = 'An error occurred during check-in.'
+      console.error(error)
+    }
   }
 
   function showSuccessModal() {
@@ -100,29 +108,6 @@ export const useCheckin = () => {
         hideModal()
       }
     }, 1000)
-  }
-
-  function launchConfetti() {
-    const duration = 3000
-    const end = Date.now() + duration
-    ;(function frame() {
-      confetti({
-        particleCount: 4,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 }
-      })
-      confetti({
-        particleCount: 4,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 }
-      })
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame)
-      }
-    })()
   }
 
   // Fetch active sessions
