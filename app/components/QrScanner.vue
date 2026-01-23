@@ -15,8 +15,6 @@
       </div>
 
       <video v-if="hasCamera" ref="videoElement" class="w-full rounded-lg"></video>
-      <QrShimmer v-else width="10" height="10" rounded="md"/>
-
       <div class="flex h-full">
         <label for="image"
           class="flex h-full w-full cursor-pointer place-content-center gap-2 bg-white p-8 font-bold text-gray-600 transition hover:text-gray-800">

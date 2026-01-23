@@ -13,6 +13,8 @@ export const useCheckin = () => {
   // Session management
   const activeSessions = ref<any[]>([])
   const selectedSessionId = ref<string | null>(null)
+  const loading = ref(true)
+  const error = ref<any>(null)
 
   // Kids and attendance
   const kids = ref<any[]>([])
@@ -219,9 +221,15 @@ export const useCheckin = () => {
 
   // Initialize on mount
   onMounted(async () => {
-    await fetchActiveSessions()
-    await fetchKids()
-    await fetchAttendance()
+    try {
+      await fetchActiveSessions()
+      await fetchKids()
+      await fetchAttendance()
+    } catch (err) {
+      error.value = err
+    } finally {
+      loading.value = false
+    }
   })
 
   return {
@@ -234,6 +242,7 @@ export const useCheckin = () => {
     loadingKids,
     checkingIn,
     attendanceMap,
+    loading,
 
     // actions
     handleScan,

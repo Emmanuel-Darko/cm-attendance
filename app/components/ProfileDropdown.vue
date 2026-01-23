@@ -1,5 +1,5 @@
 <template v-if="showProfileMenu">
-  <div class="absolute top-4 right-4 z-50">
+  <div class="absolute top-3 right-4 z-50">
     <div class="relative inline-block text-left">
       <button
         @click="toggleMenu"
