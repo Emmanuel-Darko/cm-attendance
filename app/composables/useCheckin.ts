@@ -23,6 +23,7 @@ export const useCheckin = () => {
   const checkingIn = ref(false)
 
   const localId = computed(() => useAuth().user.value.local_id)
+  const searchKey = ref('')
 
   // Attendance map for quick lookup
   const attendanceMap = computed<Record<string, string>>(() => {
@@ -33,14 +34,21 @@ export const useCheckin = () => {
     return map
   })
 
-  // Sort kids according to their check-in time (present first, by time ascending, then absent)
   const sortedKids = computed(() => {
     // Create a lookup for checkin_time
     const kidCheckins: Record<string, string | null> = {}
     attendance.value.forEach((record) => {
       kidCheckins[record.kid_id] = record.checkin_time
     })
-    return [...kids.value].sort((a, b) => {
+
+    let filtered = kids.value
+    if (searchKey.value && searchKey.value.trim().length > 0) {
+      const keyword = searchKey.value.trim().toLowerCase()
+      filtered = filtered.filter(kid =>
+        (kid.full_name || '').toLowerCase().includes(keyword)
+      )
+    }
+    return [...filtered].sort((a, b) => {
       const timeA = kidCheckins[a.id]
       const timeB = kidCheckins[b.id]
       if (timeA && timeB) {
@@ -243,6 +251,7 @@ export const useCheckin = () => {
     checkingIn,
     attendanceMap,
     loading,
+    searchKey,
 
     // actions
     handleScan,

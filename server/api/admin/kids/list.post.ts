@@ -2,13 +2,18 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const client = serverSupabaseServiceRole(event)
-  const { local_id } = await readBody(event)
+  const { local_id, allHistorical=false } = await readBody(event)
+  
+  const query = client
+    .from('kids')
+    .select('*')
+    .eq('local_id', local_id ?? null)
 
-  const { data, error } = await client
-  .from('kids')
-  .select('*')
-  .eq('local_id', local_id)
-  .order('full_name', { ascending: true })
+  if (!allHistorical) {
+    query.eq('is_active', true)
+  }
+
+  const { data, error } = await query.order('full_name', { ascending: true })
 
   if(error)
     throw createError({ status: 400, message: error.message })

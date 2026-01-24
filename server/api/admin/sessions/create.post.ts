@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
   const { data: kids } = await supabase
     .from('kids')
     .select('id')
-    .eq('local_id', local_id)
+    .eq('is_active', true)
+    .eq('local_id', local_id ?? null)
 
 
   if (kids?.length) {

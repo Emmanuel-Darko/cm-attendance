@@ -102,9 +102,48 @@ export interface Database {
           created_at?: string
         }
       }
+      teachers: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          local_id: string
+          role: string
+          contact: string
+          userId: string
+          created_at?: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          local_id: string
+          role: string
+          contact?: string
+          userId?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          local_id?: string
+          role?: string
+          contact?: string
+          userId?: string
+          created_at?: string
+        }
+      }
     }
   }
-} 
+}
+
+export type Session = Database['public']['Tables']['sessions']['Row']
+export type Kid = Database['public']['Tables']['kids']['Row']
+export type Teacher = Database['public']['Tables']['teachers']['Row']
+export type SessionKid = Database['public']['Tables']['session_kids']['Row']
+export type Attendance = Database['public']['Tables']['attendance']['Row']
+
 
 export interface locals {
   name: string,

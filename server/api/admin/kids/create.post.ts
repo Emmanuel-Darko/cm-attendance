@@ -28,31 +28,33 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: kidError.message })
   }
 
-  /* 2️⃣ Check if there is an OPEN session for this local */
-  const { data: openSession } = await supabase
+  /* 2️⃣ Check if there are any OPEN sessions for this local */
+  const { data: openSessions, error: openSessionsError } = await supabase
     .from('sessions')
     .select('id')
     .eq('local_id', local_id)
     .eq('is_open', true)
     .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
 
-  /* 3️⃣ If session exists → add kid to snapshot */
-  if (openSession) {
-    await supabase.from('session_kids').insert([
-      {
-        session_id: openSession.id,
-        kid_id: kid?.id,
-        local_id: local_id,
-        source: 'late_add'
-      }
-    ])
+  if (openSessionsError) {
+    throw createError({ statusCode: 400, statusMessage: openSessionsError.message })
+  }
+
+  /* 3️⃣ If sessions exist → add kid to snapshot for all sessions */
+  if (openSessions && openSessions.length > 0) {
+    const inserts = openSessions.map(session => ({
+      session_id: session.id,
+      kid_id: kid?.id,
+      local_id: local_id,
+      source: 'late_add'
+    }));
+
+    await supabase.from('session_kids').insert(inserts)
   }
 
   return {
     success: true,
     kid,
-    added_to_session: !!openSession
+    added_to_session: !!(openSessions && openSessions.length > 0)
   }
 })

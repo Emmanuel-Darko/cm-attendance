@@ -1,8 +1,6 @@
 import SuccessModal from "~/components/modals/SuccessModal.vue";
-import type { Database } from "~/types/database";
 
 export const useAttendance = async () => {
-  const client = useSupabaseClient<Database>();
   const name = useState<string>("attendance_name", () => "");
   const dob = useState<number | null>("attendance_dob", () => null);
   const gender = useState<string>("attendance_gender", () => "");
@@ -29,10 +27,11 @@ export const useAttendance = async () => {
     return res;
   };
 
-  const getLocalKids = async () => {
+  const getLocalKids = async ({ allHistorical = false }: { allHistorical?: boolean } = {}) => {
     const body: any = {}
     if (!isAdminRoute.value) {
       body.local_id = localId.value
+      body.allHistorical = allHistorical
     }
     const data = await $fetch('/api/admin/kids/list', {
       method: 'POST',
@@ -95,56 +94,67 @@ export const useAttendance = async () => {
       message.value = "Error: No ID provided for edit";
       return;
     }
-    processing.value = true
+    processing.value = true;
     try {
-      const { error } = await client
-        .from("kids")
-        .update({
+      const res = await $fetch('/api/admin/kids/edit', {
+        method: 'POST',
+        body: {
+          id: kid_id,
           full_name: name.value,
           dob: dob.value,
           gender: gender.value,
           local_id: local_id.value || localId.value,
-          avatar_url: generateAvatar({name: name.value, gender: gender.value}),
+          avatar_url: generateAvatar({ name: name.value, gender: gender.value }),
           guardian_name: gName.value,
-          guardian_contact: gContact.value
-        })
-        .eq("id", kid_id);
+          guardian_contact: gContact.value,
+        }
+      });
 
-      message.value = error ? "Error editing kid" : "Kid updated successfully";
-      await getLocalKids();
-      showModal(SuccessModal, {message})
-
-      if (!error) {
+      if (res?.success) {
+        message.value = "Kid updated successfully";
         name.value = "";
         dob.value = null;
         gender.value = "";
         gName.value = "";
         gContact.value = "";
+      } else {
+        message.value = (res && 'error' in res && res.error) ? res.error : "Error editing kid";
       }
+      await getLocalKids();
+      showModal(SuccessModal, { message });
     } catch (err: any) {
-      message.value = `Error editing kid: ${err?.message || err}`;
+      message.value = `Error editing kid: ${err?.data?.message || err?.message || err}`;
+      showModal(SuccessModal, { message });
     } finally {
       processing.value = false;
     }
   };
 
-  const deleteKid = (kid_id: string) => {
+  const deleteKid = async (kid_id: string) => {
     if (!kid_id) {
       message.value = "Error: No ID provided for delete";
       return;
     }
-    processing.value = true
-    client
-      .from("kids")
-      .delete()
-      .eq("id", kid_id)
-      .then(({ error }) => {
-        message.value = error ? "Error deleting kid" : "Successfully deleted kid!";
-        getLocalKids();
-        processing.value = false
-        showModal(SuccessModal, {message})
+    processing.value = true;
+    try {
+      const res = await $fetch('/api/admin/kids/delete', {
+        method: 'POST',
+        body: { id: kid_id }
       });
-  }
+      if (res?.success) {
+        message.value = "Successfully deleted kid!";
+      } else {
+        message.value = (res && 'error' in res && res.error) ? res.error : "Error deleting kid";
+      }
+      await getLocalKids();
+      showModal(SuccessModal, { message });
+    } catch (err: any) {
+      message.value = `Error deleting kid: ${err?.data?.message || err?.message || err}`;
+      showModal(SuccessModal, { message });
+    } finally {
+      processing.value = false;
+    }
+  };
 
   return {
     name,

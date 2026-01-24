@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import type { Database } from '~/types/database'
-  
+  import { useRoute } from 'vue-router'
+
   const { localKids, getAttendance, getLocalKids } = await useAttendance()
   const { sessions, fetchSessions } = useSessions()
   
@@ -24,7 +25,7 @@
   
   function groupBySession(data: any[]) {
     const grouped: Record<string, any> = {}
-  
+
     for (const item of data) {
       if (!grouped[item.session_id]) {
         grouped[item.session_id] = {
@@ -32,31 +33,52 @@
           presentIds: new Set<string>()
         }
       }
-  
+
       grouped[item.session_id].present.push(item)
       grouped[item.session_id].presentIds.add(item.kid_id)
     }
-  
+
     return Object.entries(grouped).map(([session_id, info]) => {
-      const snapshotKids = sessionKids.value.filter(
+      const session = findSession(session_id)
+      const isSessionOpen = session?.is_open
+
+      let snapshotKids = sessionKids.value.filter(
         sk => sk.session_id === session_id
       )
-  
+
+      // If the session is open, filter out inactive kids (soft deleted)
+      if (isSessionOpen) {
+        snapshotKids = snapshotKids.filter(sk => {
+          const kid = kidMap.value.get(sk.kid_id)
+          // Only include kids that are not soft deleted (assume 'active' or 'deleted_at' field)
+          // Adjust the property name as per your DB model, 'deleted_at' or 'active'
+          if (kid && ('is_active' in kid)) {
+            return kid.is_active !== false
+          }
+          // If using 'deleted_at'
+          if (kid && ('deleted_at' in kid)) {
+            return kid.deleted_at == null
+          }
+          // Default to included if property does not exist
+          return true
+        })
+      }
+
       const absentKids = snapshotKids
         .filter(sk => !info.presentIds.has(sk.kid_id))
         .map(sk => kidMap.value.get(sk.kid_id))
         .filter(Boolean)
-  
+
       return {
         session_id,
         attendance: info.present.sort(
-          (a, b) =>
+          (a: { checkin_time: string | number | Date }, b: { checkin_time: string | number | Date }) =>
             new Date(a.checkin_time).getTime() -
             new Date(b.checkin_time).getTime()
         ),
         absentKids,
         total: snapshotKids.length,
-        sessionDate: findSession(session_id)?.created_at || ''
+        sessionDate: session?.created_at || ''
       }
     }).sort(
       (a, b) =>
@@ -84,11 +106,16 @@
   const findKid = (id: string) =>
     kidMap.value.get(id)
   
+  const route = useRoute()
+
+  /**
+   * After loading, if ?session=paramsessionid, scroll page to anchor with id="session-{sessionid}"
+   */
   onMounted(async () => {
     try {
       attendance.value = await getAttendance()
       await fetchSessions()
-      await getLocalKids()
+      await getLocalKids({allHistorical: true})
       sessionKids.value = await $fetch('/api/admin/kids/session', {
         method: 'POST',
         body: { local_id: localId.value }
@@ -97,6 +124,19 @@
       error.value = err
     } finally {
       loading.value = false
+    }
+
+    // Wait until DOM is ready, then scroll to anchor if session param is given
+    if (route?.query?.session) {
+      // Allow Vue to finish rendering
+      nextTick(() => {
+        const anchorId = `session-${route.query.session}`
+        const el = document.getElementById(anchorId)
+        if (el) {
+          location.hash = `#${anchorId}` // Actually update href for anchor
+          el.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+      })
     }
   
     document.addEventListener('click', handleClickOutside)
@@ -373,6 +413,7 @@
           <div
             v-for="session in groupBySession(filteredAttendance)"
             :key="session.session_id"
+            :id="`session-${session.session_id}`"
             class="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-indigo-100/50 overflow-hidden"
           >
             <!-- Session Header -->
@@ -433,7 +474,7 @@
                     >
                       <div class="flex items-center gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 font-bold text-sm flex-shrink-0">
-                          {{ index + 1 }}
+                          {{ Number(index) + 1 }}
                         </span>
                         <div class="min-w-0">
                           <p class="font-semibold text-gray-800 text-sm truncate">{{ findKid(item.kid_id)?.full_name }}</p>

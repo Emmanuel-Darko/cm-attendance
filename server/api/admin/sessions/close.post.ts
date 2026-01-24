@@ -3,7 +3,7 @@ import type { Database } from '~/types/database'
 
 export default defineEventHandler(async (event) => {
   const supabase = serverSupabaseServiceRole<Database>(event)
-  const { session_id } = await readBody(event)
+  const { session_id, recap, offertory, teacher_ids } = await readBody(event)
 
   if (!session_id) {
     throw createError({
@@ -12,9 +12,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // 1️⃣ Update session
   const { error } = await supabase
     .from('sessions')
     .update({
+      recap,
+      offertory,
       is_open: false,
       closed_at: new Date().toISOString()
     })
@@ -26,6 +29,18 @@ export default defineEventHandler(async (event) => {
       statusMessage: error.message
     })
   }
+
+  // 2️⃣ Insert teacher attendance
+  const rows = teacher_ids.map((teacher_id: string) => ({
+    session_id,
+    teacher_id
+  }))
+
+  const { error: teacherError } = await supabase
+    .from('session_teachers')
+    .insert(rows)
+
+  if (teacherError) throw teacherError
 
   return {
     success: true,

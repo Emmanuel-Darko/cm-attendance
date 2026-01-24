@@ -1,33 +1,23 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-[rgba(239,246,255,1)] to-[rgba(245,232,255,0.7)] flex flex-col">
-    <div class="container mx-auto px-6 py-12">
-      <!-- Header / Hero -->
-      <HeroBanner
-        title="Welcome to Children's Ministry Check-In"
-        subtitle="Making check-in fun and easy for kids and parents!"
-        ctaText="Start Check-In"
-        @cta="goCheckin"
-      />
+  <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 mt-[55px]">
+      <!-- Compact Hero Banner -->
+      <HeroBanner @cta="goCheckin" />
 
-      <!-- Cards -->
-      <section class="mt-10">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Quick Actions Grid -->
+      <section class="mt-6 sm:mt-8">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           <AppHomeCard
-            v-for="card in cards"
+            v-for="(card, index) in cards"
             :key="card.title"
             :title="card.title"
-            :description="card.description"
             :to="card.to"
-            :accent="card.accent"
             :icon="card.icon"
+            :accent="card.accent"
+            :delay="index * 50"
           />
         </div>
       </section>
-
-      <!-- Tagline -->
-      <footer class="mt-12 text-center">
-        <p class="text-lg text-gray-700">✨ Together, we grow God’s little stars ✨</p>
-      </footer>
     </div>
   </div>
 </template>
@@ -42,16 +32,41 @@ function goCheckin() {
 }
 
 const cards = [
-  { to: '/checkin', title: 'QR Check-In', description: 'Scan QR codes to mark attendance', icon: 'qr', accent: 'bg-indigo-100 text-indigo-600' },
-  { to: '/sessions', title: 'Sessions', description: 'Create and close attendance sessions', icon: 'calendar', accent: 'bg-orange-100 text-orange-600' },
-  { to: '/kids', title: 'Kids', description: 'Manage kids and generate QR codes', icon: 'users', accent: 'bg-green-100 text-green-600' },
-  { to: '/attendance', title: 'Reports', description: 'View and export attendance data', icon: 'chart', accent: 'bg-purple-100 text-purple-600' },
-  { to: '/announcements', title: 'Announcements', description: 'Post messages for parents', icon: 'megaphone', accent: 'bg-yellow-100 text-yellow-600' },
-  { to: '/settings', title: 'Settings', description: 'Configure the system', icon: 'settings', accent: 'rose' }
+  { 
+    to: '/checkin', 
+    title: 'Check-In', 
+    icon: 'qr', 
+    accent: 'from-indigo-500 to-indigo-600' 
+  },
+  { 
+    to: '/sessions', 
+    title: 'Sessions', 
+    icon: 'calendar', 
+    accent: 'from-orange-500 to-orange-600' 
+  },
+  { 
+    to: '/kids', 
+    title: 'Kids', 
+    icon: 'users', 
+    accent: 'from-green-500 to-green-600' 
+  },
+  { 
+    to: '/attendance', 
+    title: 'Reports', 
+    icon: 'chart', 
+    accent: 'from-purple-500 to-purple-600' 
+  },
+  { 
+    to: '/announcements', 
+    title: 'News', 
+    icon: 'megaphone', 
+    accent: 'from-yellow-500 to-yellow-600' 
+  },
+  { 
+    to: '/settings', 
+    title: 'Settings', 
+    icon: 'settings', 
+    accent: 'from-pink-500 to-pink-600' 
+  }
 ]
 </script>
-
-<style scoped>
-/* small visual tweak so hero sits nicely on all screens */
-.container { max-width: 1200px; }
-</style>

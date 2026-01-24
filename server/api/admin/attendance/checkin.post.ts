@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
   const { data: kid, error: kidError } = await supabase
     .from('kids')
     .select('full_name, avatar_url')
+    .eq('is_active', true)
     .eq('id', kid_id)
     .maybeSingle()
 

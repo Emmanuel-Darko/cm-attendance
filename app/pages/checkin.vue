@@ -48,12 +48,12 @@
                 <h2 class="text-base sm:text-lg md:text-xl font-bold text-gray-800">Select Session</h2>
               </div>
               
-              <div class="flex flex-wrap gap-2 sm:gap-3">
+              <div class="flex flex-wrap gap-3 sm:gap-3">
                 <button
                   v-for="session in activeSessions"
                   :key="session.id"
                   @click="selectSession(session.id)"
-                  class="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base"
+                  class="px-2.5 py-1.5 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full font-semibold transition-all duration-300 text-xs sm:text-base"
                   :class="[
                     selectedSessionId === session.id
                       ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200 scale-105'
@@ -67,7 +67,7 @@
           </div>
 
           <!-- Stats Card -->
-          <div v-if="selectedSessionId" class="mb-4 sm:mb-6 md:mb-8">
+          <div v-if="selectedSessionId" class="mb-4 sm:mb-6 md:mb-8 hidden">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 text-white">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="text-center sm:text-left">
@@ -168,13 +168,32 @@
 
               <!-- Manual Table View -->
               <div v-else-if="checkinView === 'manual'" key="manual" class="p-4 sm:p-5 md:p-6">
-                <div class="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div class="p-1.5 sm:p-2 bg-indigo-100 rounded-lg">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="p-1.5 sm:p-2 bg-indigo-100 rounded-lg">
+                      <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800">Attendance List</h3>
                   </div>
-                  <h3 class="text-lg sm:text-xl font-bold text-gray-800">Attendance List</h3>
+                  <!-- Modern Search Bar -->
+                  <div class="w-full md:w-80 mt-2 md:mt-0">
+                    <div class="relative">
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+                        </svg>
+                      </span>
+                      <input
+                        v-model="searchKey"
+                        type="text"
+                        autocomplete="off"
+                        placeholder="Search attendees..."
+                        class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 focus:border-indigo-400 focus:bg-white focus:outline-none text-sm sm:text-base transition-all placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div v-if="loadingKids" class="text-center text-gray-500 py-12 sm:py-20 text-base sm:text-lg">
@@ -380,6 +399,7 @@ const {
   checkingIn,
   attendanceMap,
   loading,
+  searchKey,
   handleScan,
   manualCheckIn,
   removeAttendance

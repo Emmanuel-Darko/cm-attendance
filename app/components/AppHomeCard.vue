@@ -1,23 +1,39 @@
 <template>
-  <NuxtLink :to="to" class="group block">
-    <div
-      class="relative rounded-2xl p-6 shadow-lg border border-transparent hover:shadow-2xl transform hover:-translate-y-1 transition"
-      style="background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95))"
-    >
-      <div class="flex items-center gap-4">
+  <NuxtLink 
+    :to="to" 
+    class="group block animate-fade-in-up"
+    :style="{ animationDelay: `${delay}ms` }"
+  >
+    <div class="relative h-full bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md border border-white/50 hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 overflow-hidden">
+      <!-- Hover Gradient Overlay -->
+      <div class="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300" :class="`bg-gradient-to-br ${accent}`"></div>
+      
+      <!-- Content -->
+      <div class="relative z-10 flex flex-col items-center text-center">
         <!-- Icon -->
-        <div
-          class="w-16 h-16 rounded-xl flex items-center justify-center shadow-md ring-4 ring-white transition"
-          :class="[accent]"
-          v-html="iconSvg"
-        ></div>
-
-
-        <!-- Title + Description -->
-        <div>
-          <h3 class="text-lg font-bold text-slate-800">{{ title }}</h3>
-          <p class="text-sm text-slate-500 mt-1">{{ description }}</p>
+        <div 
+          class="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl shadow-lg group-hover:shadow-xl group-hover:scale-110 transform transition-all duration-300 bg-gradient-to-br mb-3"
+          :class="accent"
+        >
+          <div v-html="iconSvg" class="text-white"></div>
         </div>
+
+        <!-- Title -->
+        <h3 class="text-sm sm:text-base font-bold text-gray-800 group-hover:text-indigo-600 transition-colors leading-tight">
+          {{ title }}
+        </h3>
+
+        <!-- Arrow Indicator (Desktop only) -->
+        <div class="hidden sm:flex mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <svg class="w-4 h-4 text-indigo-600 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Shine Effect -->
+      <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
       </div>
     </div>
   </NuxtLink>
@@ -26,67 +42,39 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const icons: Record<string, string> = {
-  qr: `
-    <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 text-slate-700">
-      <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
-      <rect x="15" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
-      <rect x="3" y="15" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M9 15h6v6H9z" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-  `,
-  calendar: `
-    <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 text-slate-700">
-      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M16 3v4M8 3v4" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-  `,
-  users: `
-    <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 text-slate-700">
-      <path d="M17 21v-2a3 3 0 00-3-3H10a3 3 0 00-3 3v2" stroke="currentColor" stroke-width="1.5"/>
-      <circle cx="9" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M20 8a2 2 0 11-4 0 2 2 0 014 0z" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-  `,
-  chart: `
-    <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 text-slate-700">
-      <path d="M3 3v18h18" stroke="currentColor" stroke-width="1.5"/>
-      <rect x="7" y="12" width="2" height="6" fill="currentColor"/>
-      <rect x="11" y="8" width="2" height="10" fill="currentColor"/>
-      <rect x="15" y="4" width="2" height="14" fill="currentColor"/>
-    </svg>
-  `,
-  megaphone: `
-    <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 text-slate-700">
-      <path d="M3 11v2l9 4V7L3 11z" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M16 12h2a2 2 0 012 2v0a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-  `,
-  settings: `
-    <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8 text-slate-700">
-      <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06A2 2 0 114.26 18.9l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82L3.21 6.1a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09c0 .62.39 1.2 1 1.51h2.06a1.65 1.65 0 001.82-.33l.06-.06A2 2 0 1119.74 5.1l-.06.06a1.65 1.65 0 00-.33 1.82V9c.62 0 1.2.39 1.51 1h.09a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.1"/>
-    </svg>
-  `,
-}
+const { getIcon } = useIcons()
 
 const props = defineProps({
-  title: String,
-  description: String,
-  to: String,
-  icon: String,
+  title: { type: String, required: true },
+  to: { type: String, required: true },
+  icon: { type: String, required: true },
   accent: {
     type: String,
-    default: 'bg-indigo-100 text-indigo-600',
+    default: 'from-indigo-500 to-indigo-600',
   },
+  delay: {
+    type: Number,
+    default: 0
+  }
 })
 
-const iconSvg = computed(() => {
-  // fallback if props.icon is undefined, null, or key doesn't exist
-  if (props.icon && Object.prototype.hasOwnProperty.call(icons, props.icon)) {
-    return icons[props.icon]
-  }
-  return icons.qr
-})
+const iconSvg = computed(() => getIcon(props.icon))
 </script>
 
+<style scoped>
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+  opacity: 0;
+}
+</style>

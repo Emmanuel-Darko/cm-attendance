@@ -10,9 +10,34 @@ export default defineEventHandler(async (event) => {
       id,
       title,
       date,
+      recap,
+      offertory,
       is_open,
+      closed_at,
       created_at,
-      locals ( id, name )
+      locals (
+        id,
+        name
+      ),
+      session_teachers (
+        teacher_id,
+        teachers (
+          id,
+          name,
+          email
+        )
+      ),
+      session_kids (
+        kid_id,
+        kids (
+          id,
+          full_name,
+          dob
+        )
+      ),
+      attendance (
+        kid_id
+      )
     `)
     .eq('local_id', local_id)
     .order('created_at', { ascending: false })
