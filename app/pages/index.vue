@@ -18,14 +18,47 @@
           />
         </div>
       </section>
+
+      <div class="flex flex-col items-center my-20 gap-4">
+        <!-- Android PWA install -->
+        <button
+          v-if="isInstallable"
+          @click="install"
+          class="relative flex items-center justify-center px-10 py-3 font-semibold rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg text-white transition-all hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        >
+          <svg
+            class="w-6 h-6 mr-3 relative z-10"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 16V4m0 12l-4-4m4 4l4-4M5 20h14"
+            />
+          </svg>
+          <span class="relative z-10">Install App</span>
+        </button>
+
+        <!-- iOS Add to Home Screen instructions -->
+        <div v-if="isIos" class="text-sm text-gray-600 text-center">
+          📱 To install:<br />
+          Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { usePWAInstall } from '~/composables/usePWAInstall'
 
 const router = useRouter()
+const { isIos, isInstallable, install } = usePWAInstall()
 
 function goCheckin() {
   router.push('/checkin')
