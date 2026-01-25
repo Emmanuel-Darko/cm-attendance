@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxt/image'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxt/image', '@vite-pwa/nuxt'],
   nitro: {
     preset: 'netlify'
   },
@@ -19,6 +19,12 @@ export default defineNuxtConfig({
       supabaseAnonKey: process.env.SUPABASE_KEY,
     },
   },
+  components: [
+    {
+      path: "~/components",
+      pathPrefix: false,
+    },
+  ],
   app: {
     head: {
       meta: [
@@ -31,12 +37,32 @@ export default defineNuxtConfig({
     }
   },
   css: ['~/assets/css/global.css'],
-  components: [
-    {
-      path: "~/components",
-      pathPrefix: false,
-    },
-  ],
+  pwa: {
+    registerType: 'autoUpdate',
+
+    manifest: {
+      name: 'CM Attendance',
+      short_name: 'Attendance',
+      description: 'Church attendance tracking system',
+      theme_color: '#2563eb',
+      background_color: '#ffffff',
+      display: 'standalone',
+      start_url: '/',
+      scope: '/',
+      icons: [
+        {
+          src: '/icons/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: '/icons/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        }
+      ]
+    }
+  },
   devServer: {
     port: 4000,
     host: '0.0.0.0'
