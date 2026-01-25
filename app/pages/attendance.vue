@@ -290,7 +290,7 @@
               <input
                 v-model="searchTerm"
                 type="text"
-                placeholder="Search by name or ID"
+                placeholder="Search by child name"
                 class="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm sm:text-base"
               />
             </div>

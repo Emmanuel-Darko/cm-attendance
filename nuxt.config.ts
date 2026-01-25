@@ -19,6 +19,18 @@ export default defineNuxtConfig({
       supabaseAnonKey: process.env.SUPABASE_KEY,
     },
   },
+  app: {
+    head: {
+      meta: [
+        {
+          name: 'viewport',
+          content:
+            'width=device-width, initial-scale=1, maximum-scale=1'
+        }
+      ]
+    }
+  },
+  css: ['~/assets/css/global.css'],
   components: [
     {
       path: "~/components",
