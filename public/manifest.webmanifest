@@ -1,6 +1,7 @@
 {
   "name": "Kids Check-in",
   "short_name": "Check-in",
+  "start_url": "/",
   "icons": [
     {
       "src": "/icon-192.png",
