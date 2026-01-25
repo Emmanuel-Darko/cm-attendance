@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 mt-[55px]">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
       <!-- Compact Hero Banner -->
-      <HeroBanner @cta="goCheckin" />
+      <HeroBanner @cta="goCheckin" class="mt-[55px]" />
 
       <!-- Quick Actions Grid -->
       <section class="mt-6 sm:mt-8">
