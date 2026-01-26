@@ -58,7 +58,7 @@
               </span>
             </h1>
             <p class="text-sm sm:text-base text-gray-600 font-medium px-2">
-              Secure, joyful, and effortless church attendance for every family
+              Streamlined check-in and attendance for your church's children's ministry
             </p>
           </div>
   
