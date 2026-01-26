@@ -3,6 +3,11 @@ export const usePWAInstall = () => {
   const isIos = ref(false)
   const isInstallable = ref(false)
 
+  const hasInstalled = computed(() =>
+    globalThis.matchMedia('(display-mode: standalone)').matches ||
+    (globalThis.navigator as any).standalone === true
+  )
+
   onMounted(() => {
     isIos.value =
       /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -25,6 +30,7 @@ export const usePWAInstall = () => {
   return {
     isIos,
     isInstallable,
+    hasInstalled,
     install
   }
 }

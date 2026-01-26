@@ -43,8 +43,11 @@
           <span class="relative z-10">Install App</span>
         </button>
 
-        <!-- iOS Add to Home Screen instructions -->
-        <div v-if="isIos" class="text-sm text-gray-600 text-center">
+        <!-- iOS Add to Home Screen instructions, hidden after installed -->
+        <div
+          v-if="isIos && !hasInstalled"
+          class="text-sm text-gray-600 text-center"
+        >
           📱 To install:<br />
           Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>
         </div>
@@ -58,7 +61,7 @@ import { useRouter } from 'vue-router'
 import { usePWAInstall } from '~/composables/usePWAInstall'
 
 const router = useRouter()
-const { isIos, isInstallable, install } = usePWAInstall()
+const { isIos, isInstallable, hasInstalled, install } = usePWAInstall()
 
 function goCheckin() {
   router.push('/checkin')
