@@ -27,6 +27,7 @@
   "devDependencies": {
     "@netlify/functions": "^5.1.2",
     "@types/qrcode": "^1.5.5",
-    "@vite-pwa/nuxt": "^1.1.0"
+    "@vite-pwa/nuxt": "^1.1.0",
+    "netlify-cli": "^23.13.5"
   }
 }

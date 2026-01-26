@@ -98,7 +98,7 @@ export const useCheckin = () => {
 
       kidName.value = kid.full_name || 'Guest'
       kidAvatar.value = kid.avatar_url || '~/assets/avatar.jpg'
-      showSuccessModal()
+      showSuccessModal({isScan: true})
       await fetchAttendance()
     } catch (error) {
       message.value = 'An error occurred during check-in.'
@@ -106,10 +106,11 @@ export const useCheckin = () => {
     }
   }
 
-  function showSuccessModal() {
+  // Function to show the success modal; optionally launches confetti if isScan=true
+  function showSuccessModal({ isScan = false }: { isScan?: boolean } = {}) {
     countdown.value = 10
     showModal(CheckinModal, { kidAvatar, kidName, countdown })
-    launchConfetti()
+    if (isScan) launchConfetti()
 
     const timer = setInterval(() => {
       countdown.value -= 1
@@ -127,9 +128,6 @@ export const useCheckin = () => {
       body: { local_id: localId.value }
     })
     activeSessions.value = data
-    if (data.length > 0 && !selectedSessionId.value) {
-      selectedSessionId.value = data[0].id
-    }
   }
 
   // Fetch all kids
@@ -187,7 +185,7 @@ export const useCheckin = () => {
       message.value = `${fullName} checked in successfully!`
       kidName.value = fullName
       kidAvatar.value = avatarSource || '~/assets/avatar.jpg'
-      showSuccessModal()
+      // showSuccessModal()
       await fetchAttendance()
     } finally {
       checkingIn.value = false

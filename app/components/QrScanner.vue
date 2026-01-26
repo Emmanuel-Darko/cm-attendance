@@ -1,25 +1,37 @@
 <template>
-  <div class="max-w-140 rounded p-8 text-center transition" :class="dragClasses" @drop.prevent="dropHandler"
-    @dragover.prevent="dragClasses = 'bg-blue-100 shadow'" @dragleave.prevent="dragClasses = ''">
+  <div class="max-w-4xl mx-auto rounded-xl p-6 text-center transition" :class="dragClasses" @drop.prevent="dropHandler"
+    @dragover.prevent="dragClasses = 'bg-blue-100 shadow-xl'" @dragleave.prevent="dragClasses = ''">
 
-    <div class="rounded-lg shadow-lg">
-      <div v-if="cams && cams.length > 1" class="flex place-content-center items-center p-2 text-sm">
-        <label for="cams">
-          <CameraIcon />
-        </label>
-        <select class="ml-2 mr-6 p-2 rounded bg-transparent hover:bg-gray-100 hover:shadow transition"
-          v-model="activeCamId" name="cams" id="cams">
-          <option v-for="c in cams" :value="c.id">{{ c.label }}</option>
-        </select>
-        <FlashButton v-if="true" @toggle="(state) => toggleFlash(state)" />
+    <div class="rounded-2xl shadow-2xl overflow-hidden bg-white">
+      <!-- Camera Controls -->
+      <div v-if="cams && cams.length > 1" class="flex justify-between items-center p-2 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-indigo-100">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <CameraIcon class="w-5 h-5 text-indigo-600" />
+          </div>
+          <select class="px-4 py-2.5 rounded-lg bg-white border border-indigo-200 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer text-sm font-medium text-gray-700"
+            v-model="activeCamId" name="cams" id="cams">
+            <option v-for="c in cams" :key="c.id" :value="c.id">{{ c.label }}</option>
+          </select>
+        </div>
+        <FlashButton v-if="hasFlash" @toggle="(state) => toggleFlash(state)" />
       </div>
 
-      <video v-if="hasCamera" ref="videoElement" class="w-full rounded-lg"></video>
-      <div class="flex h-full">
-        <label for="image"
-          class="flex h-full w-full cursor-pointer place-content-center gap-2 bg-white p-8 font-bold text-gray-600 transition hover:text-gray-800">
-          <UploadIcon />
-          <span class="-md:text-sm">Drop or click to upload image</span>
+      <!-- Camera Feed (Square) -->
+      <div v-if="hasCamera" class="relative bg-black flex justify-center items-center">
+        <div class="w-full max-w-[400px] aspect-square mx-auto relative">
+          <video ref="videoElement" class="w-full h-full object-cover rounded-md"></video>
+          <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+            Position QR code within the frame
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Section (Smaller) -->
+      <div class="p-4 border-t border-gray-200 bg-white">
+        <label for="image" class="flex items-center gap-2 cursor-pointer rounded-lg border-2 border-dashed border-indigo-300 px-4 py-2 hover:border-indigo-500 transition">
+          <UploadIcon class="w-5 h-5 text-indigo-600" />
+          <span class="text-xs text-gray-600">Upload QR image</span>
         </label>
         <input
           id="image"
@@ -31,9 +43,13 @@
       </div>
     </div>
     
-    <p v-if="errorText && !text" class="mt-4 text-sm text-red-500">
-      {{ errorText }}
-    </p>
+    <!-- Error Message -->
+    <div v-if="errorText && !text" class="mt-6 flex items-center justify-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+      <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-sm font-medium text-red-700">{{ errorText }}</p>
+    </div>
   </div>
 </template>
 
@@ -52,11 +68,18 @@ const
   activeCamId = ref<any>("");
 let qrScanner: QrScanner;
 
-watch(activeCamId, (id) => qrScanner.setCamera(id))
-watch(text, () => {
-  navigator.vibrate(150)
-  emit('scan', text.value)
-})
+// Only emit 'scan' when a new, unique, *non-empty* result is detected; 
+// Prevent emitting the same result multiple times in a row.
+let lastScanEmitted = "";
+
+watch(activeCamId, (id) => qrScanner.setCamera(id));
+watch(text, (newValue) => {
+  if (newValue && newValue !== lastScanEmitted) {
+    navigator.vibrate(150);
+    emit('scan', newValue);
+    lastScanEmitted = newValue;
+  }
+});
 
 onMounted(async () => {
   hasCamera.value = await QrScanner.hasCamera();
@@ -102,20 +125,22 @@ function toggleFlash(state: boolean) {
 
 async function upload(file: File | null) {
   text.value = "";
+  lastScanEmitted = "";
 
   if (!file) return;
 
   try {
-    text.value = (
-      await QrScanner.scanImage(file, { returnDetailedScanResult: true })
-    ).data;
-    emit("scan", text.value);
+    const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+    if (result.data) {
+      text.value = result.data;
+      // Emit only once for image upload, since user action is explicit
+      emit("scan", result.data);
+      lastScanEmitted = result.data;
+    }
   } catch (error: any) {
     decodeError(error instanceof Error ? error : error);
   }
 }
-
-
 
 function dropHandler(e: DragEvent) {
   dragClasses.value = "";
@@ -127,16 +152,17 @@ function dropHandler(e: DragEvent) {
   upload(file);
 }
 
-
 onUnmounted(() => qrScanner?.destroy());
 </script>
 
 <style scoped>
   .qr-scanner-region-highlight {
-    border: 2px solid blue !important;
+    border: 3px solid #4f46e5 !important;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
   }
 
   .qr-scanner-code-outline {
-    stroke: blue !important;
+    stroke: #4f46e5 !important;
+    stroke-width: 3 !important;
   }
 </style>

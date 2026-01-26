@@ -66,27 +66,16 @@
             </div>
           </div>
 
-          <!-- Stats Card -->
-          <div v-if="selectedSessionId" class="mb-4 sm:mb-6 md:mb-8 hidden">
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 text-white">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="text-center sm:text-left">
-                  <p class="text-indigo-100 text-xs sm:text-sm font-medium mb-1">Attendance Summary</p>
-                  <p class="text-2xl sm:text-3xl font-bold">{{ presentCount }} / {{ sortedKids.length }}</p>
-                </div>
-                <div class="flex justify-around sm:justify-end sm:gap-4 md:gap-6">
-                  <div class="text-center">
-                    <div class="text-xl sm:text-2xl font-bold">{{ presentCount }}</div>
-                    <div class="text-indigo-100 text-xs sm:text-sm">Present</div>
-                  </div>
-                  <div class="text-center">
-                    <div class="text-xl sm:text-2xl font-bold">{{ sortedKids.length - presentCount }}</div>
-                    <div class="text-indigo-100 text-xs sm:text-sm">Absent</div>
-                  </div>
-                  <div class="text-center">
-                    <div class="text-xl sm:text-2xl font-bold">{{ attendanceRate }}%</div>
-                    <div class="text-indigo-100 text-xs sm:text-sm">Rate</div>
-                  </div>
+          <!-- Stats Card (compact on mobile) with no theme colors -->
+          <div v-if="selectedSessionId" class="mb-3 sm:mb-6 md:mb-8">
+            <div class="bg-white rounded-lg sm:rounded-2xl shadow p-2.5 sm:p-5 md:p-6 text-gray-900">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                <!-- Compact: Same compact row for all screens -->
+                <div class="w-full flex items-center justify-center gap-3">
+                  <span class="text-base sm:text-2xl md:text-3xl font-bold">{{ presentCount }}</span>
+                  <span class="text-base sm:text-2xl md:text-3xl font-bold text-gray-400">/</span>
+                  <span class="text-base sm:text-2xl md:text-3xl font-bold">{{ sortedKids.length }}</span>
+                  <span class="text-xs sm:text-base md:text-lg font-semibold ml-2 text-gray-800 bg-gray-200 rounded px-1.5 py-0.5">{{ attendanceRate }}%</span>
                 </div>
               </div>
             </div>
@@ -128,14 +117,19 @@
             </div>
           </div>
 
-          <!-- Message Display -->
+          <!-- Toast Message: lite background, auto-disappear -->
           <transition name="fade-slide">
-            <div v-if="message" class="mb-4 sm:mb-6">
-              <div class="bg-green-50 border border-green-200 rounded-lg sm:rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3 shadow-md">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <div
+              v-if="message"
+              class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+              style="pointer-events:none;"
+            >
+              <div class="inline-flex items-center p-2 rounded shadow bg-white text-gray-800 text-xs sm:text-sm font-medium gap-2 border border-green-200"
+                   :class="{'opacity-0 transition-opacity duration-500': toastFading}">
+                <svg class="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p class="text-green-800 font-medium text-sm sm:text-base">{{ message }}</p>
+                <span>{{ message }}</span>
               </div>
             </div>
           </transition>
@@ -426,6 +420,44 @@ const attendanceRate = computed(() => {
   if (sortedKids.value.length === 0) return 0
   return Math.round((presentCount.value / sortedKids.value.length) * 100)
 })
+
+const toastFading = ref(false);
+
+// Watch for message updates to control toast fading
+watch(message, (newVal) => {
+  if (newVal) {
+    toastFading.value = false;
+    setTimeout(() => {
+      toastFading.value = true;
+    }, 1800);
+  } else {
+    toastFading.value = false;
+  }
+});
+
+
+watch(
+  activeSessions,
+  (sessions) => {
+    const route = useRoute();
+    const sessionIdFromQuery =
+      typeof route.query.session === "string"
+        ? route.query.session
+        : Array.isArray(route.query.session)
+        ? route.query.session[0]
+        : undefined;
+
+    if (sessionIdFromQuery && sessions.some((s) => s.id === sessionIdFromQuery)) {
+      selectedSessionId.value = sessionIdFromQuery;
+    } else if (sessions.length > 0) {
+      selectedSessionId.value = sessions[0].id;
+    } else {
+      selectedSessionId.value = null;
+    }
+  },
+  { immediate: true }
+);
+
 </script>
 
 <style scoped>

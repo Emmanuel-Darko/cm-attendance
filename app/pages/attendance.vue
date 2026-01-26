@@ -80,11 +80,20 @@
         total: snapshotKids.length,
         sessionDate: session?.created_at || ''
       }
-    }).sort(
-      (a, b) =>
-        new Date(b.sessionDate).getTime() -
-        new Date(a.sessionDate).getTime()
-    )
+    }).sort((a, b) => {
+      // Sort by session status: open sessions first, then closed
+      const sessionA = findSession(a.session_id)
+      const sessionB = findSession(b.session_id)
+
+      // Open sessions first (true > false)
+      const aOpen = sessionA?.is_open ? 1 : 0
+      const bOpen = sessionB?.is_open ? 1 : 0
+      if (aOpen !== bOpen) {
+        return bOpen - aOpen // bOpen > aOpen means a after b
+      }
+      // Within the same status, sort by session date descending
+      return new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
+    })
   }
   
   const filteredAttendance = computed(() => {

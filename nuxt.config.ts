@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
-  ssr: true,
+  ssr: false,
 
   modules: [
     '@nuxtjs/tailwindcss',
@@ -39,6 +39,12 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' }
       ],
+      link: [
+        {
+          rel: 'manifest',
+          href: '/manifest.webmanifest'
+        }
+      ]
     }
   },
   css: ['~/assets/css/global.css'],
