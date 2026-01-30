@@ -268,7 +268,8 @@
   </script>
   
   <template>
-    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <AttendanceShimmer v-if="loading" />
+    <div v-else class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
         <!-- Header -->
         <div class="mb-4 sm:mb-6 md:mb-8">
@@ -394,14 +395,8 @@
           </div>
         </div>
   
-        <!-- Loading State -->
-        <div v-if="loading" class="text-center py-16 sm:py-20">
-          <div class="inline-block w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p class="text-gray-600 text-base sm:text-lg">Loading reports...</p>
-        </div>
-  
         <!-- Error State -->
-        <div v-else-if="error" class="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
+        <div v-if="error" class="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
           <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>

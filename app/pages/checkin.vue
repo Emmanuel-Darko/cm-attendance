@@ -1,5 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+  <!-- Loading State -->
+  <CheckinShimmer v-if="loading" />
+  <div v-else class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
     <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
       <!-- Header -->
       <div class="mb-4 sm:mb-6 md:mb-8">
@@ -11,12 +13,7 @@
         </NuxtLink>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="text-center text-gray-500 py-12 sm:py-16 text-base sm:text-lg">
-        <div class="inline-block w-10 h-10 sm:w-12 sm:h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3 sm:mb-4"></div>
-        <p>Loading attendance...</p>
-      </div>
-      <div v-else>
+      <div>
         <!-- No Sessions State -->
         <div v-if="activeSessions.length === 0" class="mt-6 sm:mt-10 flex justify-center items-center px-3">
           <NuxtLink

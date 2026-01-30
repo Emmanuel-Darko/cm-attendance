@@ -22,7 +22,7 @@
             <!-- Avatar with gradient border -->
             <div class="relative mb-4 sm:mb-6">
               <div class="absolute -inset-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur opacity-75"></div>
-              <NuxtImg
+              <img
                 :src="kidAvatar"
                 alt="Kid Avatar"
                 class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white shadow-xl"

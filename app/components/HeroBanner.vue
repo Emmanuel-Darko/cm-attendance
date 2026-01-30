@@ -20,13 +20,7 @@
               <div class="relative">
                 <div class="absolute inset-0 bg-white/20 rounded-xl blur-lg"></div>
                 <div class="relative inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg">
-                  <svg class="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 28 28" fill="none">
-                    <ellipse cx="14" cy="11" rx="6.5" ry="6.6" fill="#fff" stroke="#6366f1" stroke-width="2"/>
-                    <ellipse cx="10.7" cy="12" rx="1.1" ry="1.0" fill="#6366f1"/>
-                    <ellipse cx="17.3" cy="12" rx="1.1" ry="1.0" fill="#6366f1"/>
-                    <ellipse cx="14" cy="15.2" rx="2.2" ry="0.85" fill="#e0e7ff" opacity="0.75"/>
-                    <path d="M7.8 21.1c1.2-3.1 10-3.2 11.4 0" stroke="#6366f1" stroke-width="1.6" stroke-linecap="round"/>
-                  </svg>
+                  <img src="~/assets/images/logo.svg" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
                 </div>
               </div>
             </div>
