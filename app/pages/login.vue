@@ -41,13 +41,7 @@
               <div class="relative">
                 <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl blur-xl opacity-50"></div>
                 <div class="relative p-3 sm:p-4 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-lg">
-                  <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 28 28">
-                    <ellipse cx="14" cy="11" rx="6.2" ry="6.5" fill="#fff" stroke="currentColor" stroke-width="2"/>
-                    <ellipse cx="10.9" cy="12" rx="1.1" ry="1.1" fill="currentColor"/>
-                    <ellipse cx="17.2" cy="12" rx="1.1" ry="1.1" fill="currentColor"/>
-                    <ellipse cx="14" cy="15.2" rx="2.3" ry="0.8" fill="rgba(255,255,255,0.5)"/>
-                    <path d="M8 21.2c1.3-3 9.8-3.2 11.1 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
+                  <img src="~/assets/images/logo.svg" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
                 </div>
               </div>
             </div>

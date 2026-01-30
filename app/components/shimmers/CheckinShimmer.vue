@@ -36,9 +36,13 @@
             <!-- Tab Navigation Shimmer -->
             <div class="mb-4 sm:mb-6">
                 <div
-                    class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-1.5 sm:p-2 inline-flex gap-1.5 sm:gap-2 w-full sm:w-auto">
-                    <ShimmerLoader className="flex-1 sm:flex-initial h-12 rounded-xl" />
-                    <ShimmerLoader className="flex-1 sm:flex-initial h-12 rounded-xl" />
+                    class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-2 sm:p-3 flex gap-2 sm:gap-3 w-full max-w-md xs:mx-auto sm:mx-0">
+                    <div class="flex-1">
+                        <ShimmerLoader className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl" />
+                    </div>
+                    <div class="flex-1">
+                        <ShimmerLoader className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl" />
+                    </div>
                 </div>
             </div>
 
