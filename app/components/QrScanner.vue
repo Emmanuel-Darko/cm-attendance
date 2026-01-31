@@ -1,4 +1,4 @@
-<template>
+	<template>
   <div class="max-w-4xl mx-auto rounded-xl p-6 text-center transition" :class="dragClasses" @drop.prevent="dropHandler"
     @dragover.prevent="dragClasses = 'bg-blue-100 shadow-xl'" @dragleave.prevent="dragClasses = ''">
 
@@ -27,56 +27,66 @@
     <FlashButton v-if="hasFlash" @toggle="(state) => toggleFlash(state)" />
   </div>
 
-  <!-- Camera Feed Shimmer (Initial Loading) -->
-  <div v-if="isInitializing" class="relative bg-black flex justify-center items-center">
+  <!-- Camera/Video Section -->
+  <div class="relative bg-black flex justify-center items-center">
     <div class="w-full max-w-[400px] aspect-square mx-auto relative">
-      <ShimmerLoader className="w-full h-full rounded-md" />
-      <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
-        <div class="p-4 bg-white/10 backdrop-blur-sm rounded-full">
-          <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </div>
-        <p class="text-white text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
-          Initializing camera...
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Camera Feed (Active) -->
-  <div v-else-if="hasCamera && !initializationError" class="relative bg-black flex justify-center items-center">
-    <div class="w-full max-w-[400px] aspect-square mx-auto relative">
-      <video ref="videoElement" class="w-full h-full object-cover rounded-md" :class="{ 'opacity-50': isSwitchingCamera }" autoplay playsinline muted></video>
+      <!-- Video element - ALWAYS rendered -->
+      <video 
+        ref="videoElement" 
+        class="w-full h-full object-cover rounded-md" 
+        :class="{ 
+          'opacity-50': isSwitchingCamera,
+          'hidden': !hasCamera || initializationError
+        }" 
+        autoplay 
+        playsinline 
+        muted
+      ></video>
       
-      <!-- Camera Switching Overlay -->
-      <div v-if="isSwitchingCamera" class="absolute inset-0 flex items-center justify-center">
-        <div class="bg-black/60 backdrop-blur-sm px-6 py-3 rounded-full flex items-center gap-3">
-          <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span class="text-white text-sm font-medium">Switching camera...</span>
+      <!-- Loading State -->
+      <div v-if="isInitializing" class="absolute inset-0">
+        <ShimmerLoader className="w-full h-full rounded-md" />
+        <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <div class="p-4 bg-white/10 backdrop-blur-sm rounded-full">
+            <svg class="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <p class="text-white text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+            Initializing camera...
+          </p>
         </div>
       </div>
-
-      <!-- Normal Overlay -->
-      <div v-else class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
-        Position QR code within the frame
+      
+      <!-- No Camera State -->
+      <div v-else-if="!hasCamera || initializationError" class="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-8">
+        <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <p class="text-gray-500 font-medium">No camera available</p>
+        <p class="text-gray-400 text-sm mt-2">Upload an image instead</p>
       </div>
-    </div>
-  </div>
+      
+      <!-- Camera Active Overlays -->
+      <template v-else>
+        <!-- Camera Switching Overlay -->
+        <div v-if="isSwitchingCamera" class="absolute inset-0 flex items-center justify-center">
+          <div class="bg-black/60 backdrop-blur-sm px-6 py-3 rounded-full flex items-center gap-3">
+            <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-white text-sm font-medium">Switching camera...</span>
+          </div>
+        </div>
 
-  <!-- No Camera State -->
-  <div v-else class="relative bg-gray-100 flex justify-center items-center">
-    <div class="w-full max-w-[400px] aspect-square mx-auto relative flex flex-col items-center justify-center p-8">
-      <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-      <p class="text-gray-500 font-medium">No camera available</p>
-      <p class="text-gray-400 text-sm mt-2">Upload an image instead</p>
+        <!-- Normal Overlay -->
+        <div v-else class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+          Position QR code within the frame
+        </div>
+      </template>
     </div>
   </div>
 
@@ -181,31 +191,36 @@ watch(text, (newValue) => {
 
 async function initializeCamera() {
   try {
-    // First, wait for the DOM to be ready
+    // Video element should already be in the DOM since it's always rendered
     await nextTick();
     
-    // Check if video element is in the DOM
+    // Give the DOM a moment to settle
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     if (!videoElement.value) {
       console.error('Video element ref not available');
       throw new Error("Video element not mounted");
     }
+
+    console.log('Video element found:', videoElement.value);
 
     // Check for camera availability
     const cameraAvailable = await QrScanner.hasCamera();
     
     if (!cameraAvailable) {
       hasCamera.value = false;
-      decodeError("No camera found");
+      decodeError("No camera found on this device");
       return;
     }
 
-    // Set hasCamera to true so UI shows the video element
-    hasCamera.value = true;
+    console.log('Camera available, getting camera list...');
 
     // Get available cameras
     cams.value = await QrScanner.listCameras(true);
+    console.log('Available cameras:', cams.value);
 
     // Initialize QR Scanner
+    console.log('Initializing QR Scanner...');
     qrScanner = new QrScanner(
       videoElement.value,
       (r) => {
@@ -226,8 +241,13 @@ async function initializeCamera() {
       }
     );
 
+    console.log('Starting QR Scanner...');
     // Start the scanner
     await qrScanner.start();
+    console.log('QR Scanner started successfully');
+
+    // Now that scanner is started, we can show the camera
+    hasCamera.value = true;
 
     // Check for flash support
     hasFlash.value = await qrScanner.hasFlash();
@@ -271,14 +291,7 @@ onMounted(async () => {
     return;
   }
 
-  // Set hasCamera to true initially so video element renders
-  hasCamera.value = true;
-  
-  // Wait for next tick to ensure DOM is ready
-  await nextTick();
-  
-  // Small delay to ensure video element is fully mounted
-  await new Promise(resolve => setTimeout(resolve, 100));
+  console.log('Component mounted, initializing camera...');
   
   // Initialize camera
   await initializeCamera();
