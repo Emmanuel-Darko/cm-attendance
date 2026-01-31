@@ -46,9 +46,9 @@
   </div>
 
   <!-- Camera Feed (Active) -->
-  <div v-else-if="hasCamera" class="relative bg-black flex justify-center items-center">
+  <div v-else-if="hasCamera && !initializationError" class="relative bg-black flex justify-center items-center">
     <div class="w-full max-w-[400px] aspect-square mx-auto relative">
-      <video ref="videoElement" class="w-full h-full object-cover rounded-md" :class="{ 'opacity-50': isSwitchingCamera }" autoplay playsinline></video>
+      <video ref="videoElement" class="w-full h-full object-cover rounded-md" :class="{ 'opacity-50': isSwitchingCamera }" autoplay playsinline muted></video>
       
       <!-- Camera Switching Overlay -->
       <div v-if="isSwitchingCamera" class="absolute inset-0 flex items-center justify-center">
@@ -142,18 +142,18 @@ const
   videoElement = ref<HTMLVideoElement>(), 
   text = ref(""), 
   errorText = ref(""), 
-  hasCamera = ref(true), 
+  hasCamera = ref(false), 
   hasFlash = ref(false), 
   dragClasses = ref(""), 
   cams = ref<QrScanner.Camera[]>(), 
   activeCamId = ref<any>(""),
   isInitializing = ref(true),
   isSwitchingCamera = ref(false),
-  isProcessingUpload = ref(false);
+  isProcessingUpload = ref(false),
+  initializationError = ref(false);
 
 let qrScanner: QrScanner | null = null;
 let lastScanEmitted = "";
-let initializationAttempted = false;
 
 watch(activeCamId, async (id, oldId) => {
   if (oldId && id !== oldId && qrScanner) {
@@ -180,28 +180,27 @@ watch(text, (newValue) => {
 });
 
 async function initializeCamera() {
-  if (initializationAttempted) return;
-  initializationAttempted = true;
-
   try {
-    // Check for camera availability
-    hasCamera.value = await QrScanner.hasCamera();
+    // First, wait for the DOM to be ready
+    await nextTick();
+    
+    // Check if video element is in the DOM
+    if (!videoElement.value) {
+      console.error('Video element ref not available');
+      throw new Error("Video element not mounted");
+    }
 
-    if (!hasCamera.value) {
+    // Check for camera availability
+    const cameraAvailable = await QrScanner.hasCamera();
+    
+    if (!cameraAvailable) {
+      hasCamera.value = false;
       decodeError("No camera found");
       return;
     }
 
-    // Wait for the video element to be available
-    let attempts = 0;
-    while (!videoElement.value && attempts < 20) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    if (!videoElement.value) {
-      throw new Error("Video element not found after waiting");
-    }
+    // Set hasCamera to true so UI shows the video element
+    hasCamera.value = true;
 
     // Get available cameras
     cams.value = await QrScanner.listCameras(true);
@@ -223,7 +222,7 @@ async function initializeCamera() {
         returnDetailedScanResult: true,
         highlightScanRegion: true,
         highlightCodeOutline: true,
-        maxScansPerSecond: 5, // Limit scan frequency
+        maxScansPerSecond: 5,
       }
     );
 
@@ -242,12 +241,10 @@ async function initializeCamera() {
       activeCamId.value = backCamera?.id || cams.value[cams.value.length - 1]?.id;
     }
 
-    // Give camera time to fully initialize
-    await new Promise(resolve => setTimeout(resolve, 500));
-
   } catch (error: any) {
     console.error('Camera initialization error:', error);
     hasCamera.value = false;
+    initializationError.value = true;
     
     // Provide user-friendly error messages
     if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
@@ -256,6 +253,8 @@ async function initializeCamera() {
       decodeError("No camera found on this device.");
     } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
       decodeError("Camera is being used by another application.");
+    } else if (error.name === 'NotSupportedError') {
+      decodeError("Camera not supported on this browser.");
     } else {
       decodeError(error.message || "Failed to initialize camera");
     }
@@ -272,8 +271,14 @@ onMounted(async () => {
     return;
   }
 
+  // Set hasCamera to true initially so video element renders
+  hasCamera.value = true;
+  
   // Wait for next tick to ensure DOM is ready
   await nextTick();
+  
+  // Small delay to ensure video element is fully mounted
+  await new Promise(resolve => setTimeout(resolve, 100));
   
   // Initialize camera
   await initializeCamera();
