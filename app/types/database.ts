@@ -134,6 +134,59 @@ export interface Database {
           created_at?: string
         }
       }
+      adult_visitors: {
+        Row: {
+          id: string
+          first_name: string
+          last_name: string
+          email: string | null
+          phone: string | null
+          visit_date: string
+          first_time_guest: boolean
+          address: string | null
+          how_heard: string | null
+          interested_in: string[]
+          assigned_to: string | null
+          follow_up_status: 'new' | 'contacted' | 'scheduled' | 'completed' | 'no_response'
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          first_name: string
+          last_name: string
+          email?: string | null
+          phone?: string | null
+          visit_date?: string
+          first_time_guest?: boolean
+          address?: string | null
+          how_heard?: string | null
+          interested_in?: string[]
+          assigned_to?: string | null
+          follow_up_status?: 'new' | 'contacted' | 'scheduled' | 'completed' | 'no_response'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          first_name?: string
+          last_name?: string
+          email?: string | null
+          phone?: string | null
+          visit_date?: string
+          first_time_guest?: boolean
+          address?: string | null
+          how_heard?: string | null
+          interested_in?: string[]
+          assigned_to?: string | null
+          follow_up_status?: 'new' | 'contacted' | 'scheduled' | 'completed' | 'no_response'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -143,6 +196,7 @@ export type Kid = Database['public']['Tables']['kids']['Row']
 export type Teacher = Database['public']['Tables']['teachers']['Row']
 export type SessionKid = Database['public']['Tables']['session_kids']['Row']
 export type Attendance = Database['public']['Tables']['attendance']['Row']
+export type AdultVisitor = Database['public']['Tables']['adult_visitors']['Row']
 
 
 export interface locals {

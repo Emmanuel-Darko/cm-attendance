@@ -1,8 +1,9 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { user, getUser } = useAuth()
   
-  const publicPages = ['/login']
-  const authRequired = !publicPages.includes(to.path)
+  const publicPages = ['/login', '/adult/register']
+  const isPublicPage = publicPages.includes(to.path)
+  const authRequired = !isPublicPage
 
   if (!user.value) {
     await getUser()
@@ -17,7 +18,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // Restrict admin routes to only admin users
-  if (to.path.startsWith('/admin')) {
+  if (to.path.startsWith('/admin') || (to.path.startsWith('/adult') && !isPublicPage)) {
     if (!user.value || user.value.role !== 'admin') {
       return navigateTo('/')
     }

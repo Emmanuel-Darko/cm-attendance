@@ -6,7 +6,7 @@
 
       <!-- Quick Actions Grid -->
       <section class="mt-6 sm:mt-8">
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
           <AppHomeCard
             v-for="(card, index) in cards"
             :key="card.title"
@@ -61,13 +61,14 @@ import { useRouter } from 'vue-router'
 import { usePWAInstall } from '~/composables/usePWAInstall'
 
 const router = useRouter()
+const { user } = useAuth()
 const { isIos, isInstallable, hasInstalled, install } = usePWAInstall()
 
 function goCheckin() {
   router.push('/checkin')
 }
 
-const cards = [
+const baseCards = [
   { 
     to: '/checkin', 
     title: 'Check-In', 
@@ -92,6 +93,13 @@ const cards = [
     icon: 'chart', 
     accent: 'from-purple-500 to-purple-600' 
   },
+  {
+    to: '/adult',
+    title: 'Visitors',
+    icon: 'visitor',
+    accent: 'from-teal-500 to-teal-600',
+    adminOnly: true
+  },
   { 
     to: '/announcements', 
     title: 'News', 
@@ -105,4 +113,8 @@ const cards = [
     accent: 'from-pink-500 to-pink-600' 
   }
 ]
+
+const cards = computed(() =>
+  baseCards.filter((card) => !('adminOnly' in card) || user.value?.role === 'admin')
+)
 </script>
