@@ -14,6 +14,7 @@ export interface AdultVisitor {
   visit_date: string
   first_time_guest: boolean
   address?: string | null
+  occupation?: string | null
   how_heard?: string | null
   interested_in: string[]
   assigned_to?: string | null

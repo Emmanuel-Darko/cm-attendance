@@ -5,7 +5,7 @@ type AdultVisitorUpdate = Database['public']['Tables']['adult_visitors']['Update
 
 const ALLOWED_FIELDS = [
   'first_name', 'last_name', 'email', 'phone', 'visit_date',
-  'first_time_guest', 'address', 'how_heard', 'interested_in',
+  'first_time_guest', 'address', 'occupation', 'how_heard', 'interested_in',
   'assigned_to', 'follow_up_status', 'notes'
 ]
 

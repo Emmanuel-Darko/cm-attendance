@@ -8,6 +8,7 @@ type PublicAdultVisitor = {
   visit_date: string
   first_time_guest: boolean
   address: string | null
+  occupation: string | null
   how_heard: string | null
   interested_in: string[]
   notes: string | null
@@ -47,6 +48,7 @@ const form = ref({
   visit_date: new Date().toISOString().slice(0, 10),
   first_time_guest: true,
   address: '',
+  occupation: '',
   how_heard: '',
   interested_in: [] as string[],
   notes: ''
@@ -186,6 +188,10 @@ async function submitVisitor() {
           <div class="space-y-2 sm:col-span-2">
             <label class="text-xs sm:text-sm text-gray-700 font-semibold">Address/Location <span class="text-red-500">*</span></label>
             <input v-model="form.address" required type="text" class="w-full px-4 py-2.5 sm:py-3 bg-white/80 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-sm sm:text-base font-medium" />
+          </div>
+          <div class="space-y-2 sm:col-span-2">
+            <label class="text-xs sm:text-sm text-gray-700 font-semibold">Occupation</label>
+            <input v-model="form.occupation" type="text" class="w-full px-4 py-2.5 sm:py-3 bg-white/80 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-sm sm:text-base font-medium" />
           </div>
           <div class="space-y-2 sm:col-span-2">
             <label class="text-xs sm:text-sm text-gray-700 font-semibold">Interested in</label>

@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
       visit_date: body.visit_date || undefined,
       first_time_guest: body.first_time_guest ?? true,
       address: body.address || null,
+      occupation: body.occupation || null,
       how_heard: body.how_heard || null,
       interested_in: Array.isArray(body.interested_in) ? body.interested_in : [],
       notes: body.notes || null

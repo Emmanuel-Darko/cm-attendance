@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAdultVisitors, type AdultVisitorInput, type FollowUpStatus } from '~/composables/useAdultVisitors'
+import { useAdultVisitors, type AdultVisitor, type AdultVisitorInput, type FollowUpStatus } from '~/composables/useAdultVisitors'
 
 useHead({ title: 'Adult Visitors' })
 
@@ -44,6 +44,7 @@ const emptyForm = (): AdultVisitorInput => ({
   phone: '',
   visit_date: new Date().toISOString().slice(0, 10),
   address: '',
+  occupation: '',
   how_heard: '',
   interested_in: [],
   assigned_to: '',
@@ -53,9 +54,37 @@ const emptyForm = (): AdultVisitorInput => ({
 const form = ref<AdultVisitorInput>(emptyForm())
 const saving = ref(false)
 const formError = ref<string | null>(null)
+const editingId = ref<string | null>(null)
+const editingScrollTarget = ref<string | null>(null)
+const editForm = ref<HTMLFormElement | null>(null)
+
+const sortField = ref<string | null>(null)
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
+const showExportMenu = ref(false)
+const exportingFormat = ref<string | null>(null)
 
 const totalNew = computed(() => visitors.value.filter((visitor) => visitor.follow_up_status === 'new').length)
 const totalCompleted = computed(() => visitors.value.filter((visitor) => visitor.follow_up_status === 'completed').length)
+
+const sortedVisitors = computed(() => {
+  if (!sortField.value) return visitors.value
+  return [...visitors.value].sort((a, b) => {
+    let compare = 0
+    if (sortField.value === 'name') {
+      const nameA = `${a.first_name} ${a.last_name}`.toLowerCase()
+      const nameB = `${b.first_name} ${b.last_name}`.toLowerCase()
+      compare = nameA.localeCompare(nameB)
+    } else if (sortField.value === 'visit_date') {
+      compare = a.visit_date.localeCompare(b.visit_date)
+    } else if (sortField.value === 'assigned_to') {
+      compare = (a.assigned_to || '').localeCompare(b.assigned_to || '')
+    } else if (sortField.value === 'follow_up_status') {
+      compare = a.follow_up_status.localeCompare(b.follow_up_status)
+    }
+    return sortOrder.value === 'asc' ? compare : -compare
+  })
+})
 
 async function refresh() {
   await fetchVisitors({
@@ -70,8 +99,6 @@ watch(search, () => {
   searchTimeout = setTimeout(refresh, 300)
 })
 watch(statusFilter, refresh)
-
-onMounted(refresh)
 
 function toggleInterest(value: string) {
   const list = form.value.interested_in || []
@@ -89,9 +116,21 @@ async function submitForm() {
 
   saving.value = true
   try {
-    await addVisitor(form.value)
+    if (editingId.value) {
+      await updateVisitor(editingId.value, form.value)
+      editingId.value = null
+    } else {
+      await addVisitor(form.value)
+    }
+    const target = editingScrollTarget.value
+    editingScrollTarget.value = null
     form.value = emptyForm()
     showForm.value = false
+    if (target) {
+      nextTick(() => {
+        document.getElementById(`visitor-${target}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
+    }
   } catch {
     formError.value = error.value
   } finally {
@@ -109,6 +148,59 @@ async function onRemove(id: string) {
   }
 }
 
+function editVisitor(visitor: AdultVisitor) {
+  editingId.value = visitor.id
+  editingScrollTarget.value = visitor.id
+  form.value = {
+    first_name: visitor.first_name,
+    last_name: visitor.last_name,
+    email: visitor.email || '',
+    phone: visitor.phone || '',
+    visit_date: visitor.visit_date,
+    address: visitor.address || '',
+    occupation: visitor.occupation || '',
+    how_heard: visitor.how_heard || '',
+    interested_in: visitor.interested_in || [],
+    assigned_to: visitor.assigned_to || '',
+    notes: visitor.notes || ''
+  }
+  showForm.value = true
+  nextTick(() => {
+    editForm.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
+function cancelEdit() {
+  const target = editingScrollTarget.value
+  editingId.value = null
+  editingScrollTarget.value = null
+  form.value = emptyForm()
+  showForm.value = false
+  if (target) {
+    nextTick(() => {
+      document.getElementById(`visitor-${target}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
+}
+
+function toggleSort(field: string) {
+  if (sortField.value === field) {
+    if (sortOrder.value === 'asc') {
+      sortOrder.value = 'desc'
+    } else {
+      sortField.value = null
+    }
+  } else {
+    sortField.value = field
+    sortOrder.value = 'asc'
+  }
+}
+
+function sortIndicator(field: string) {
+  if (sortField.value !== field) return ''
+  return sortOrder.value === 'asc' ? ' ▲' : ' ▼'
+}
+
 function initials(first: string, last: string) {
   return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
 }
@@ -124,6 +216,117 @@ const statusStyles: Record<FollowUpStatus, string> = {
   completed: 'bg-green-100 text-green-700',
   no_response: 'bg-gray-100 text-gray-700'
 }
+
+function downloadFile(blob: Blob, filename: string) {
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+function exportToCSV() {
+  exportingFormat.value = 'csv'
+  const headers = ['Name', 'Email', 'Phone', 'Visit Date', 'Address', 'Occupation', 'How Heard', 'Interests', 'Assigned To', 'Status', 'Notes']
+  const rows = sortedVisitors.value.map((v) => [
+    `${v.first_name} ${v.last_name}`,
+    v.email || '',
+    v.phone || '',
+    v.visit_date,
+    v.address || '',
+    v.occupation || '',
+    v.how_heard || '',
+    (v.interested_in || []).join('; '),
+    v.assigned_to || '',
+    statusLabel(v.follow_up_status),
+    v.notes || ''
+  ])
+  const csv = [headers, ...rows].map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n')
+  downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `adult_visitors_${Date.now()}.csv`)
+  exportingFormat.value = null
+  showExportMenu.value = false
+}
+
+function exportToXLS() {
+  exportingFormat.value = 'excel'
+  const headers = ['Name', 'Email', 'Phone', 'Visit Date', 'Address', 'Occupation', 'How Heard', 'Interests', 'Assigned To', 'Status', 'Notes']
+  let html = '<table><thead><tr>' + headers.map((h) => `<th>${h}</th>`).join('') + '</tr></thead><tbody>'
+  sortedVisitors.value.forEach((v) => {
+    html += '<tr>'
+    html += `<td>${v.first_name} ${v.last_name}</td>`
+    html += `<td>${v.email || ''}</td>`
+    html += `<td>${v.phone || ''}</td>`
+    html += `<td>${v.visit_date}</td>`
+    html += `<td>${v.address || ''}</td>`
+    html += `<td>${v.occupation || ''}</td>`
+    html += `<td>${v.how_heard || ''}</td>`
+    html += `<td>${(v.interested_in || []).join('; ')}</td>`
+    html += `<td>${v.assigned_to || ''}</td>`
+    html += `<td>${statusLabel(v.follow_up_status)}</td>`
+    html += `<td>${v.notes || ''}</td>`
+    html += '</tr>'
+  })
+  html += '</tbody></table>'
+  downloadFile(new Blob([html], { type: 'application/vnd.ms-excel' }), `adult_visitors_${Date.now()}.xls`)
+  exportingFormat.value = null
+  showExportMenu.value = false
+}
+
+function exportToPDF() {
+  exportingFormat.value = 'pdf'
+  const headers = ['Name', 'Email', 'Phone', 'Visit Date', 'Address', 'Occupation', 'How Heard', 'Interests', 'Assigned To', 'Status', 'Notes']
+  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Adult Visitors</title><style>
+    body { font-family: Helvetica, Arial, sans-serif; padding: 24px; }
+    h1 { font-size: 20px; margin-bottom: 16px; color: #333; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { background: #f3f4f6; text-align: left; padding: 8px; border: 1px solid #d1d5db; font-weight: 700; }
+    td { padding: 6px 8px; border: 1px solid #d1d5db; }
+    tr:nth-child(even) { background: #f9fafb; }
+  </style></head><body>
+  <h1>Adult Visitors Report</h1>
+  <p style="margin-bottom:16px;color:#666;">${sortedVisitors.value.length} records — ${new Date().toLocaleDateString()}</p>
+  <table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>`
+  sortedVisitors.value.forEach((v) => {
+    html += '<tr>'
+    html += `<td>${v.first_name} ${v.last_name}</td>`
+    html += `<td>${v.email || ''}</td>`
+    html += `<td>${v.phone || ''}</td>`
+    html += `<td>${v.visit_date}</td>`
+    html += `<td>${v.address || ''}</td>`
+    html += `<td>${v.occupation || ''}</td>`
+    html += `<td>${v.how_heard || ''}</td>`
+    html += `<td>${(v.interested_in || []).join('; ')}</td>`
+    html += `<td>${v.assigned_to || ''}</td>`
+    html += `<td>${statusLabel(v.follow_up_status)}</td>`
+    html += `<td>${v.notes || ''}</td>`
+    html += '</tr>'
+  })
+  html += '</tbody></table></body></html>'
+  const win = window.open('', '_blank')
+  if (win) {
+    win.document.write(html)
+    win.document.close()
+    win.print()
+  }
+  exportingFormat.value = null
+  showExportMenu.value = false
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (!(event.target as HTMLElement).closest('.export-dropdown')) {
+    showExportMenu.value = false
+  }
+}
+
+onMounted(() => {
+  refresh()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <template>
@@ -190,7 +393,13 @@ const statusStyles: Record<FollowUpStatus, string> = {
           </button>
         </div>
 
-        <form v-if="showForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6 rounded-xl border-2 border-indigo-100 bg-indigo-50/40 p-4 sm:p-5" @submit.prevent="submitForm">
+        <form v-if="showForm" ref="editForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6 rounded-xl border-2 border-indigo-100 bg-indigo-50/40 p-4 sm:p-5" @submit.prevent="submitForm">
+          <div v-if="editingId" class="sm:col-span-2 bg-amber-50 border-2 border-amber-200 rounded-xl p-3 flex items-center gap-2 text-sm font-medium text-amber-800">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Editing visitor record
+          </div>
           <div class="space-y-2">
             <label class="text-xs sm:text-sm text-gray-700 font-semibold">First name <span class="text-red-500">*</span></label>
             <input v-model="form.first_name" type="text" required class="w-full border-2 border-gray-200 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm sm:text-base bg-white" />
@@ -214,6 +423,10 @@ const statusStyles: Record<FollowUpStatus, string> = {
           <div class="space-y-2">
             <label class="text-xs sm:text-sm text-gray-700 font-semibold">Address / Location</label>
             <input v-model="form.address" type="text" placeholder="City, neighborhood, or address" class="w-full border-2 border-gray-200 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm sm:text-base bg-white" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs sm:text-sm text-gray-700 font-semibold">Occupation</label>
+            <input v-model="form.occupation" type="text" class="w-full border-2 border-gray-200 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm sm:text-base bg-white" />
           </div>
           <div class="space-y-2">
             <label class="text-xs sm:text-sm text-gray-700 font-semibold">How they heard</label>
@@ -253,11 +466,11 @@ const statusStyles: Record<FollowUpStatus, string> = {
           </div>
 
           <div class="sm:col-span-2 flex flex-col sm:flex-row justify-end gap-3 pt-2">
-            <button type="button" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-white transition" @click="showForm = false">
-              Cancel
+            <button type="button" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-white transition" @click="cancelEdit">
+              {{ editingId ? 'Cancel Editing' : 'Cancel' }}
             </button>
             <button type="submit" :disabled="saving" class="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl transition disabled:opacity-60">
-              {{ saving ? 'Saving...' : 'Save Visitor' }}
+              {{ saving ? 'Saving...' : editingId ? 'Update Visitor' : 'Save Visitor' }}
             </button>
           </div>
         </form>
@@ -273,6 +486,48 @@ const statusStyles: Record<FollowUpStatus, string> = {
             <option value="all">All statuses</option>
             <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select>
+          <div class="relative export-dropdown">
+            <button
+              type="button"
+              :disabled="!!exportingFormat"
+              class="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 transition-all whitespace-nowrap"
+              @click="showExportMenu = !showExportMenu"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {{ exportingFormat ? 'Exporting...' : 'Export' }}
+            </button>
+            <div
+              v-if="showExportMenu"
+              class="absolute right-0 mt-2 w-44 bg-white border-2 border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors text-left"
+                @click="exportToCSV"
+              >
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                CSV
+              </button>
+              <button
+                type="button"
+                class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors text-left border-t border-gray-100"
+                @click="exportToXLS"
+              >
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Excel (.xls)
+              </button>
+              <button
+                type="button"
+                class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors text-left border-t border-gray-100"
+                @click="exportToPDF"
+              >
+                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                PDF (Print)
+              </button>
+            </div>
+          </div>
         </div>
 
         <div v-if="error" class="mb-5 bg-red-50 border-2 border-red-200 rounded-xl p-3 sm:p-4 text-sm font-medium text-red-700">
@@ -283,25 +538,34 @@ const statusStyles: Record<FollowUpStatus, string> = {
           <table class="w-full text-sm">
             <thead>
               <tr class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
-                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Guest</th>
+                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer select-none hover:text-indigo-600 transition-colors" @click="toggleSort('name')">
+                  Guest<span class="text-indigo-500">{{ sortIndicator('name') }}</span>
+                </th>
                 <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Contact</th>
-                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Visit</th>
-                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Assigned</th>
-                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer select-none hover:text-indigo-600 transition-colors" @click="toggleSort('visit_date')">
+                  Visit<span class="text-indigo-500">{{ sortIndicator('visit_date') }}</span>
+                </th>
+                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer select-none hover:text-indigo-600 transition-colors" @click="toggleSort('assigned_to')">
+                  Assigned<span class="text-indigo-500">{{ sortIndicator('assigned_to') }}</span>
+                </th>
+                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Occupation</th>
+                <th class="py-4 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer select-none hover:text-indigo-600 transition-colors" @click="toggleSort('follow_up_status')">
+                  Status<span class="text-indigo-500">{{ sortIndicator('follow_up_status') }}</span>
+                </th>
                 <th class="py-4 px-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="pending">
-                <td colspan="6" class="p-12 text-center font-medium text-gray-500">Loading visitors...</td>
+                <td colspan="7" class="p-12 text-center font-medium text-gray-500">Loading visitors...</td>
               </tr>
               <tr v-else-if="!visitors.length">
-                <td colspan="6" class="p-12 text-center">
+                <td colspan="7" class="p-12 text-center">
                   <p class="font-semibold text-lg text-gray-600">No visitors found</p>
                   <p class="text-sm text-gray-400 mt-1">Log a visitor or share the public registration page.</p>
                 </td>
               </tr>
-              <tr v-for="visitor in visitors" :key="visitor.id" class="border-b border-gray-100 hover:bg-gray-50 transition">
+              <tr v-for="visitor in sortedVisitors" :key="visitor.id" :id="'visitor-' + visitor.id" class="border-b border-gray-100 hover:bg-gray-50 transition">
                 <td class="py-4 px-4">
                   <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
@@ -319,6 +583,7 @@ const statusStyles: Record<FollowUpStatus, string> = {
                 </td>
                 <td class="py-4 px-4 text-gray-600">{{ visitor.visit_date }}</td>
                 <td class="py-4 px-4 text-gray-600">{{ visitor.assigned_to || '-' }}</td>
+                <td class="py-4 px-4 text-gray-600">{{ visitor.occupation || '-' }}</td>
                 <td class="py-4 px-4">
                   <select
                     :value="visitor.follow_up_status"
@@ -329,7 +594,12 @@ const statusStyles: Record<FollowUpStatus, string> = {
                     <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
                   </select>
                 </td>
-                <td class="py-4 px-4 text-right">
+                <td class="py-4 px-4 text-right whitespace-nowrap">
+                  <button type="button" class="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-xl transition-colors" @click="editVisitor(visitor)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                   <button type="button" class="p-2.5 text-red-600 hover:bg-red-100 rounded-xl transition-colors" @click="onRemove(visitor.id)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -347,7 +617,7 @@ const statusStyles: Record<FollowUpStatus, string> = {
             <p class="font-semibold text-gray-600">No visitors found</p>
           </div>
           <template v-else>
-            <div v-for="visitor in visitors" :key="visitor.id" class="rounded-xl border-2 border-gray-200 bg-white p-4 shadow-sm">
+            <div v-for="visitor in sortedVisitors" :key="visitor.id" :id="'visitor-' + visitor.id" class="rounded-xl border-2 border-gray-200 bg-white p-4 shadow-sm">
               <div class="flex items-start gap-3">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-md">
                   {{ initials(visitor.first_name, visitor.last_name) }}
@@ -358,15 +628,23 @@ const statusStyles: Record<FollowUpStatus, string> = {
                       <h3 class="font-bold text-gray-900">{{ visitor.first_name }} {{ visitor.last_name }}</h3>
                       <p class="text-xs text-gray-500">{{ visitor.visit_date }}</p>
                     </div>
-                    <button type="button" class="p-2 text-red-600 hover:bg-red-100 rounded-xl transition-colors" @click="onRemove(visitor.id)">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    <div class="flex items-center gap-1">
+                      <button type="button" class="p-2 text-indigo-600 hover:bg-indigo-100 rounded-xl transition-colors" @click="editVisitor(visitor)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="p-2 text-red-600 hover:bg-red-100 rounded-xl transition-colors" @click="onRemove(visitor.id)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   <div class="mt-3 space-y-1 text-sm text-gray-600">
                     <p>{{ visitor.email || '-' }}</p>
                     <p>{{ visitor.phone || '' }}</p>
+                    <p>Occupation: {{ visitor.occupation || '-' }}</p>
                     <p>Assigned: {{ visitor.assigned_to || '-' }}</p>
                   </div>
                   <select

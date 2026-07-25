@@ -25,6 +25,7 @@ create table if not exists adult_visitors (
   first_time_guest  boolean not null default true,
 
   address           text,
+  occupation        text,           -- job / profession
   how_heard         text,           -- e.g. friend/family, website, social media, drove by, event
   interested_in     text[] default '{}', -- e.g. {membership, small_groups, volunteering, prayer}
 
