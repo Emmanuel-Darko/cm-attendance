@@ -190,6 +190,38 @@ export interface Database {
           updated_at?: string
         }
       }
+      announcements: {
+        Row: {
+          id: string
+          title: string
+          content: string
+          image_url: string | null
+          author_id: string | null
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          content: string
+          image_url?: string | null
+          author_id?: string | null
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: string
+          image_url?: string | null
+          author_id?: string | null
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -200,6 +232,7 @@ export type Teacher = Database['public']['Tables']['teachers']['Row']
 export type SessionKid = Database['public']['Tables']['session_kids']['Row']
 export type Attendance = Database['public']['Tables']['attendance']['Row']
 export type AdultVisitor = Database['public']['Tables']['adult_visitors']['Row']
+export type Announcement = Database['public']['Tables']['announcements']['Row']
 
 
 export interface locals {

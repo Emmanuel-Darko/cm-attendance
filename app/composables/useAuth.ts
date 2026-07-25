@@ -88,6 +88,15 @@ export const useAuth = () => {
       // Set teacher data to user
       await fetchAndSetTeacherData(loginUser, user)
 
+      // Fallback: if no teacher record found, use the raw auth user
+      if (!user.value) {
+        user.value = {
+          ...loginUser,
+          ...loginUser?.user_metadata,
+          role: loginUser?.app_metadata?.role || loginUser?.role || 'teacher'
+        }
+      }
+
       if (user.value && session) {
         setSessionData(user.value, loginUser, session)
       }
@@ -154,6 +163,19 @@ export const useAuth = () => {
         throw new Error('User ID not found')
       }
       await fetchAndSetTeacherData({ id: userId }, user)
+
+      // Fallback: use raw auth user if no teacher record
+      if (!user.value) {
+        const authUser = loginUser?.user
+        if (authUser) {
+          user.value = {
+            ...authUser,
+            ...authUser?.user_metadata,
+            role: authUser?.app_metadata?.role || authUser.role || 'teacher'
+          }
+        }
+      }
+
       return user.value
     } catch (err: any) {
       error.value = err?.message || 'Unknown error'

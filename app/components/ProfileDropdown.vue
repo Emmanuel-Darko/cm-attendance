@@ -136,7 +136,46 @@
                 </div>
               </NuxtLink>
 
-              <div class="my-2 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+              <template v-if="isAdmin">
+                <NuxtLink
+                  to="/"
+                  @click="menuOpen = false"
+                  class="flex items-center gap-2.5 px-3 py-2 text-gray-700 hover:bg-teal-50 transition-colors group"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center group-hover:bg-teal-200 transition-colors">
+                    <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-xs font-medium text-gray-900">Dashboard</div>
+                    <div class="text-[10px] text-gray-500">Switch to teacher view</div>
+                  </div>
+                </NuxtLink>
+
+                <NuxtLink
+                  v-if="!isAdminRoute"
+                  to="/admin"
+                  @click="menuOpen = false"
+                  class="flex items-center gap-2.5 px-3 py-2 text-gray-700 hover:bg-amber-50 transition-colors group"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-xs font-medium text-gray-900">Admin Panel</div>
+                    <div class="text-[10px] text-gray-500">Manage system settings</div>
+                  </div>
+                </NuxtLink>
+
+                <div class="my-2 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+              </template>
+
+              <template v-else>
+                <div class="my-2 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+              </template>
 
               <button
                 @click="handleLogout"
@@ -162,7 +201,8 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-const { user, logout } = useAuth()
+const { user, logout, isAdmin } = useAuth()
+const { isAdminRoute } = useCommon()
 
 const menuOpen = ref(false)
 const showProfileMenu = computed(() => !!user.value)
