@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAdultVisitors, type AdultVisitor, type AdultVisitorInput, type FollowUpStatus } from '~/composables/useAdultVisitors'
+import * as XLSX from 'xlsx'
 
 useHead({ title: 'Adult Visitors' })
 
@@ -232,7 +233,7 @@ function exportToCSV() {
   const rows = sortedVisitors.value.map((v) => [
     `${v.first_name} ${v.last_name}`,
     v.email || '',
-    v.phone || '',
+    v.phone ? `\t${v.phone}` : '',
     v.visit_date,
     v.address || '',
     v.occupation || '',
@@ -248,27 +249,44 @@ function exportToCSV() {
   showExportMenu.value = false
 }
 
-function exportToXLS() {
+function exportToXLSX() {
   exportingFormat.value = 'excel'
-  const headers = ['Name', 'Email', 'Phone', 'Visit Date', 'Address', 'Occupation', 'How Heard', 'Interests', 'Assigned To', 'Status', 'Notes']
-  let html = '<table><thead><tr>' + headers.map((h) => `<th>${h}</th>`).join('') + '</tr></thead><tbody>'
-  sortedVisitors.value.forEach((v) => {
-    html += '<tr>'
-    html += `<td>${v.first_name} ${v.last_name}</td>`
-    html += `<td>${v.email || ''}</td>`
-    html += `<td>${v.phone || ''}</td>`
-    html += `<td>${v.visit_date}</td>`
-    html += `<td>${v.address || ''}</td>`
-    html += `<td>${v.occupation || ''}</td>`
-    html += `<td>${v.how_heard || ''}</td>`
-    html += `<td>${(v.interested_in || []).join('; ')}</td>`
-    html += `<td>${v.assigned_to || ''}</td>`
-    html += `<td>${statusLabel(v.follow_up_status)}</td>`
-    html += `<td>${v.notes || ''}</td>`
-    html += '</tr>'
-  })
-  html += '</tbody></table>'
-  downloadFile(new Blob([html], { type: 'application/vnd.ms-excel' }), `adult_visitors_${Date.now()}.xls`)
+  const data = sortedVisitors.value.map((v) => ({
+    Name: `${v.first_name} ${v.last_name}`,
+    Email: v.email || '',
+    Phone: v.phone || '',
+    'Visit Date': v.visit_date,
+    Address: v.address || '',
+    Occupation: v.occupation || '',
+    'How Heard': v.how_heard || '',
+    Interests: (v.interested_in || []).join('; '),
+    'Assigned To': v.assigned_to || '',
+    Status: statusLabel(v.follow_up_status),
+    Notes: v.notes || ''
+  }))
+
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.json_to_sheet(data)
+
+  const range = XLSX.utils.decode_range(ws['!ref']!)
+  for (let r = range.s.r + 1; r <= range.e.r; r++) {
+    const addr = XLSX.utils.encode_cell({ r, c: 2 })
+    if (ws[addr]) {
+      ws[addr].t = 's'
+      ws[addr].v = String(ws[addr].v)
+    }
+  }
+
+  const cols = Object.keys(data[0]).map((key, i) => ({
+    wch: Math.max(
+      key.length,
+      ...data.map((row) => String(Object.values(row)[i] || '').length)
+    )
+  }))
+  ws['!cols'] = cols
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Visitors')
+  XLSX.writeFile(wb, `adult_visitors_${Date.now()}.xlsx`)
   exportingFormat.value = null
   showExportMenu.value = false
 }
@@ -513,10 +531,10 @@ onUnmounted(() => {
               <button
                 type="button"
                 class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors text-left border-t border-gray-100"
-                @click="exportToXLS"
+                @click="exportToXLSX"
               >
                 <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                Excel (.xls)
+                Excel (.xlsx)
               </button>
               <button
                 type="button"
