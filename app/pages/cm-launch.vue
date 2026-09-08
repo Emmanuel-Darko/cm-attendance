@@ -41,6 +41,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'auth'
+})
+
 const iframeHeight = computed(() => {
   if (import.meta.client) {
     return `${window.innerHeight - 160}px`
