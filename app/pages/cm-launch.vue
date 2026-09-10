@@ -4,8 +4,8 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">CM Launch 2026</h1>
-          <p class="text-sm text-gray-500 mt-1">Children's Ministry Week Day 2</p>
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Tehilla Night 🎶🎼</h1>
+          <p class="text-sm text-gray-500 mt-1">Children's Ministry Week Day 3</p>
         </div>
         <a
           href="/cm-launch-2026.pdf"
