@@ -73,6 +73,18 @@ export const useIcons = () => {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" stroke="currentColor"/>
       </svg>
     `,
+    flame: `
+      <svg viewBox="0 0 24 24" fill="none" class="w-6 h-6 sm:w-7 sm:h-7">
+        <path d="M12 2C9.5 5.5 10 8 8 10.5C6.5 8.5 6.5 6 6.5 6C4.5 9 4 12 4 14C4 18.4183 7.58172 22 12 22C16.4183 22 20 18.4183 20 14C20 9 16 5 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M12 18C13.6569 18 15 16.6569 15 15C15 13.5 13.5 12 12 10.5C10.5 12 9 13.5 9 15C9 16.6569 10.3431 18 12 18Z" fill="currentColor"/>
+      </svg>
+    `,
+    trophy: `
+      <svg viewBox="0 0 24 24" fill="none" class="w-6 h-6 sm:w-7 sm:h-7">
+        <path d="M8 21h8m-4-4v4M6 4h12v4a6 6 0 01-12 0V4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 6H3a1 1 0 00-1 1v1a4 4 0 004 4h0M18 6h3a1 1 0 011 1v1a4 4 0 01-4 4h0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `,
   }
 
   const getIcon = (name: string, fallback: string = 'qr'): string => {

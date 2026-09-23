@@ -222,6 +222,107 @@ export interface Database {
           updated_at?: string
         }
       }
+      soul_teams: {
+        Row: {
+          id: string
+          name: string
+          color_tag: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          color_tag?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          color_tag?: string
+          created_at?: string
+        }
+      }
+      soul_winners: {
+        Row: {
+          id: string
+          full_name: string
+          team_id: string
+          phone: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          team_id: string
+          phone?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          team_id?: string
+          phone?: string | null
+          created_at?: string
+        }
+      }
+      souls: {
+        Row: {
+          id: string
+          full_name: string
+          phone: string | null
+          location: string | null
+          date_won: string
+          status: 'new' | 'contacted' | 'in_discipleship' | 'baptized' | 'integrated'
+          won_by: string
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          phone?: string | null
+          location?: string | null
+          date_won?: string
+          status?: 'new' | 'contacted' | 'in_discipleship' | 'baptized' | 'integrated'
+          won_by: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          phone?: string | null
+          location?: string | null
+          date_won?: string
+          status?: 'new' | 'contacted' | 'in_discipleship' | 'baptized' | 'integrated'
+          won_by?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      soul_targets: {
+        Row: {
+          id: number
+          target_count: number
+          monthly_target: number
+          project_title: string
+        }
+        Insert: {
+          id?: number
+          target_count?: number
+          monthly_target?: number
+          project_title?: string
+        }
+        Update: {
+          id?: number
+          target_count?: number
+          monthly_target?: number
+          project_title?: string
+        }
+      }
     }
   }
 }
@@ -233,7 +334,11 @@ export type SessionKid = Database['public']['Tables']['session_kids']['Row']
 export type Attendance = Database['public']['Tables']['attendance']['Row']
 export type AdultVisitor = Database['public']['Tables']['adult_visitors']['Row']
 export type Announcement = Database['public']['Tables']['announcements']['Row']
-
+export type SoulTeam = Database['public']['Tables']['soul_teams']['Row']
+export type SoulWinner = Database['public']['Tables']['soul_winners']['Row']
+export type Soul = Database['public']['Tables']['souls']['Row']
+export type SoulTarget = Database['public']['Tables']['soul_targets']['Row']
+export type SoulStatus = 'new' | 'contacted' | 'in_discipleship' | 'baptized' | 'integrated'
 
 export interface locals {
   name: string,
