@@ -7,7 +7,7 @@
       <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
         <!-- Header -->
         <div class="mb-4 sm:mb-6 md:mb-8">
-          <NuxtLink to="/"
+          <NuxtLink to="/dashboard"
             class="group inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-white rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-gray-700 hover:text-indigo-600 border border-gray-100">
             <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" fill="none"
               stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

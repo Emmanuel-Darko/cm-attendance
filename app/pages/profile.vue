@@ -3,7 +3,7 @@
     <div class="max-w-5xl mx-auto px-4 py-8">
       <!-- Back Button -->
       <NuxtLink 
-        to="/" 
+        to="/dashboard" 
         class="inline-flex items-center gap-2 mb-8 px-5 py-2.5 bg-white/80 backdrop-blur-sm text-indigo-700 rounded-xl hover:bg-white hover:shadow-lg transition-all border border-indigo-100 group"
       >
         <svg class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

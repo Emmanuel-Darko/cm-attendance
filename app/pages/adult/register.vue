@@ -93,6 +93,19 @@ async function submitVisitor() {
 <template>
   <div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 px-3 py-6 sm:px-6 sm:py-10">
     <div class="mx-auto w-full max-w-3xl">
+      <!-- Back to Services -->
+      <div class="mb-4">
+        <NuxtLink
+          to="/"
+          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/80 hover:bg-white text-gray-700 hover:text-indigo-600 text-xs sm:text-sm font-medium border border-white/60 shadow-sm transition-all"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>All Services</span>
+        </NuxtLink>
+      </div>
+
       <div class="text-center mb-6 sm:mb-8">
         <div class="inline-flex items-center justify-center p-3 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-lg mb-4">
           <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">

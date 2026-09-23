@@ -358,7 +358,7 @@ onUnmounted(() => {
           <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          <span class="font-medium text-sm sm:text-base">Back</span>
+          <span class="font-medium text-sm sm:text-base">Back to Home</span>
         </NuxtLink>
       </div>
 
