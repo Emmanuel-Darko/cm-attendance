@@ -34,6 +34,19 @@
   
       <!-- Login Card -->
       <div class="relative z-10 w-full max-w-md mx-4 sm:mx-6">
+        <!-- Back to Services Link -->
+        <div class="mb-4">
+          <NuxtLink
+            to="/"
+            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/80 hover:bg-white text-gray-700 hover:text-indigo-600 text-xs sm:text-sm font-medium border border-white/60 shadow-sm transition-all"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>All Services</span>
+          </NuxtLink>
+        </div>
+
         <div class="bg-white/80 backdrop-blur-2xl border border-white/50 rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10">
           <!-- Logo/Brand Section -->
           <div class="text-center mb-6 sm:mb-8">
@@ -52,7 +65,7 @@
               </span>
             </h1>
             <p class="text-sm sm:text-base text-gray-600 font-medium px-2">
-              Streamlined check-in and attendance for your church's children's ministry
+              Staff login for check-in and children's ministry management
             </p>
           </div>
   
@@ -131,12 +144,10 @@
             <p class="text-center text-xs sm:text-sm text-gray-500">
               &copy; {{ new Date().getFullYear() }} 
               <span class="font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Kids Check-In
+                Church Management
               </span>
               <br class="sm:hidden">
               <span class="hidden sm:inline"> &mdash; </span>
-              Made with 
-              <span class="text-red-500">❤</span> by 
               <span class="font-semibold text-gray-700">&lt;Kode/&gt;</span>
             </p>
           </div>

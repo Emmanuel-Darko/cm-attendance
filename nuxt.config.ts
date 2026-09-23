@@ -54,9 +54,9 @@ export default defineNuxtConfig({
     registerType: 'autoUpdate',
 
     manifest: {
-      name: 'Kids Check-in',
-      short_name: 'Checkin',
-      description: 'Church attendance tracking system',
+      name: 'Church Management',
+      short_name: 'Church App',
+      description: 'Church management, kids check-in, visitors & souls tracking',
       theme_color: '#2563eb',
       background_color: '#ffffff',
       display: 'standalone',

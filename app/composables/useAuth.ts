@@ -103,12 +103,15 @@ export const useAuth = () => {
 
       const router = useRouter()
       const role = user.value?.role
+      const redirectQuery = router.currentRoute.value?.query?.redirect
 
-      if (role === USER_ROLES.admin) {
+      if (redirectQuery && typeof redirectQuery === 'string') {
+        router.push(redirectQuery)
+      } else if (role === USER_ROLES.admin) {
         router.push('/admin')
       } else {
-        // fallback for teacher/unknown: homepage
-        router.push('/')
+        // fallback for teacher/unknown: dashboard
+        router.push('/dashboard')
       }
 
       return user.value
@@ -128,7 +131,7 @@ export const useAuth = () => {
       await client.auth.signOut()
       user.value = null
       clearSessionData()
-      router.push('/login')
+      router.push('/')
     } catch (err: any) {
       error.value = err?.message || 'Unknown error'
     } finally {

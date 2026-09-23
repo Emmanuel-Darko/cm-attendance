@@ -1,8 +1,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { user, getUser } = useAuth()
   
-  const publicPages = ['/login', '/adult/register', '/cm-launch']
-  const isPublicPage = publicPages.includes(to.path)
+  const publicPages = ['/', '/login', '/adult', '/adult/register', '/cm-launch']
+  const isPublicPage = publicPages.includes(to.path) || to.path.startsWith('/adult') || to.path === '/souls' || to.path.startsWith('/souls/')
   const authRequired = !isPublicPage
 
   if (!user.value) {
@@ -10,17 +10,21 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (to.path === '/login' && user.value) {
-    return navigateTo('/')
+    const redirectUrl = to.query.redirect ? String(to.query.redirect) : '/dashboard'
+    return navigateTo(redirectUrl)
   }
 
   if (authRequired && !user.value) {
-    return navigateTo('/login')
+    const redirectParam = to.fullPath !== '/' && to.fullPath !== '/dashboard' 
+      ? `?redirect=${encodeURIComponent(to.fullPath)}`
+      : '?redirect=/dashboard'
+    return navigateTo(`/login${redirectParam}`)
   }
 
   // Restrict admin routes to only admin users
-  if (to.path.startsWith('/admin') || (to.path.startsWith('/adult') && !isPublicPage)) {
+  if (to.path.startsWith('/admin')) {
     if (!user.value || user.value.role !== 'admin') {
-      return navigateTo('/')
+      return navigateTo('/dashboard')
     }
   }
 })
