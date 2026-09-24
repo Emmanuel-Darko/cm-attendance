@@ -1,8 +1,15 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-indigo-100/80 via-slate-100 to-purple-100/70 flex flex-col relative">
+  <div class="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50/80 to-purple-100/70 flex flex-col relative overflow-hidden">
+    
+    <!-- Ambient Gradient Glow Elements (visible contrast behind cards) -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-48 -left-20 w-96 h-96 bg-indigo-200/60 rounded-full blur-3xl"></div>
+      <div class="absolute top-96 -right-20 w-96 h-96 bg-purple-200/60 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-20 left-1/3 w-96 h-96 bg-pink-200/50 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Colored Header Band -->
-    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 pt-8 pb-16 sm:pt-10 sm:pb-20 relative overflow-hidden">
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 pt-8 pb-16 sm:pt-10 sm:pb-20 relative overflow-hidden shadow-sm">
       <!-- Subtle circle decorations -->
       <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
       <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
@@ -14,7 +21,7 @@
         </div>
 
         <h1 class="text-2xl sm:text-3xl font-bold text-white">Church Management</h1>
-        <p class="mt-2 text-sm sm:text-base text-white/75">Welcome — choose a service to get started</p>
+        <p class="mt-2 text-sm sm:text-base text-white/80">Welcome — choose a service to get started</p>
 
         <!-- Auth pill -->
         <div v-if="user" class="mt-4 inline-flex items-center gap-2 px-4 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-sm text-white/90 border border-white/20">
@@ -25,14 +32,14 @@
       </div>
     </div>
 
-    <!-- Cards Section (overlapping the header) -->
+    <!-- Cards Section (overlapping the header with clear card elevation) -->
     <main class="flex-1 max-w-xl w-full mx-auto px-4 -mt-10 sm:-mt-12 relative z-20 pb-8">
       <div class="space-y-4">
 
         <!-- Kids Check-In -->
         <div
           @click="navigateToKidsCheckin"
-          class="group bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
+          class="group bg-white rounded-2xl shadow-md hover:shadow-xl border border-indigo-100/60 overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
         >
           <div class="flex items-center gap-4 p-5">
             <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-indigo-200">
@@ -66,7 +73,7 @@
         <!-- Church Visitors (leads to /adult) -->
         <NuxtLink
           to="/adult"
-          class="group bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 overflow-hidden block transition-all duration-200 hover:-translate-y-0.5"
+          class="group bg-white rounded-2xl shadow-md hover:shadow-xl border border-teal-100/60 overflow-hidden block transition-all duration-200 hover:-translate-y-0.5"
         >
           <div class="flex items-center gap-4 p-5">
             <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-teal-200">
@@ -89,7 +96,7 @@
         <!-- Souls -->
         <NuxtLink
           to="/souls"
-          class="group bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 overflow-hidden block transition-all duration-200 hover:-translate-y-0.5"
+          class="group bg-white rounded-2xl shadow-md hover:shadow-xl border border-amber-100/60 overflow-hidden block transition-all duration-200 hover:-translate-y-0.5"
         >
           <div class="flex items-center gap-4 p-5">
             <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white flex-shrink-0 shadow-md shadow-amber-200">
@@ -132,7 +139,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-6 text-center">
+    <footer class="py-6 text-center relative z-20">
       <p class="text-xs text-gray-400">
         &copy; {{ new Date().getFullYear() }}
         <span class="font-semibold text-gray-500">Church Management</span>
