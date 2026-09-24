@@ -487,14 +487,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-gray-900 pb-12">
+  <div class="min-h-screen bg-gradient-to-b from-indigo-50/40 via-slate-50/60 to-purple-50/30 text-gray-900 pb-12">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
       
       <!-- Top Navigation Row -->
       <div class="flex items-center justify-between gap-3 mb-4 sm:mb-6">
         <NuxtLink
           to="/"
-          class="group inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white rounded-xl shadow-sm hover:shadow transition-all text-gray-700 hover:text-indigo-600 border border-gray-200 text-xs sm:text-sm font-medium"
+          class="group inline-flex items-center gap-2 px-3.5 py-2 bg-white/90 hover:bg-white rounded-xl shadow-xs hover:shadow transition-all text-gray-700 hover:text-indigo-600 border border-gray-200/80 text-xs sm:text-sm font-medium"
         >
           <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -506,9 +506,9 @@ onUnmounted(() => {
           <!-- Link to Field Recording Page -->
           <NuxtLink
             to="/souls/register"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs sm:text-sm font-semibold transition"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs hover:shadow rounded-xl text-xs sm:text-sm font-bold transition-all"
           >
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span class="w-2 h-2 rounded-full bg-white/90 animate-pulse"></span>
             <span>Field Mode</span>
           </NuxtLink>
 
@@ -516,7 +516,7 @@ onUnmounted(() => {
           <button
             type="button"
             @click="openAddModal"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow transition-all"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -526,20 +526,37 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <!-- Header Title with subtle gradient accent -->
+      <div class="mb-5 sm:mb-6 text-center sm:text-left">
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Souls Tracking
+          </span>
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+          Chairman's 800,000 Souls Project & District Evangelism Campaign
+        </p>
+      </div>
+
       <!-- TOP STATS CARDS: 3 on Desktop (sm+), Only 1 on Mobile -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
         
         <!-- Card 1: Monthly Target (Visible on ALL devices) -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-sm flex flex-col justify-between">
+        <div class="relative bg-gradient-to-b from-white via-white to-indigo-50/20 rounded-2xl p-4 sm:p-5 border border-indigo-100/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
+          <!-- Subtle Top Gradient Bar -->
+          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
           <div>
             <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-indigo-600">Monthly Target</span>
+              <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Monthly Target
+              </span>
               
               <!-- Month Selector -->
               <select
                 v-model="selectedMonth"
                 @change="onMonthSelectChange"
-                class="text-[11px] font-semibold bg-gray-50 text-gray-700 border border-gray-200 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                class="text-[11px] font-semibold bg-indigo-50/60 text-indigo-800 border border-indigo-200/80 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
               >
                 <option value="">Current Month</option>
                 <option v-for="m in summary?.available_months" :key="m" :value="m">
@@ -557,15 +574,15 @@ onUnmounted(() => {
                   / {{ summary?.monthly_target || 75 }}
                 </span>
               </div>
-              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
                 {{ monthlyProgressPercent.toFixed(0) }}%
               </span>
             </div>
 
-            <!-- Clean Slim Progress Bar -->
-            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden my-1.5">
+            <!-- Clean Slim Progress Bar with vibrant gradient -->
+            <div class="w-full h-2 bg-indigo-50/80 rounded-full overflow-hidden my-1.5">
               <div
-                class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500"
+                class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500"
                 :style="{ width: `${Math.max(clampedMonthlyProgressPercent, summary?.monthly_souls ? 4 : 0)}%` }"
               ></div>
             </div>
@@ -577,11 +594,16 @@ onUnmounted(() => {
         </div>
 
         <!-- Card 2: Total Recorded (Desktop & Tablet only) -->
-        <div class="hidden sm:flex bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-sm flex-col justify-between">
+        <div class="hidden sm:flex relative bg-gradient-to-b from-white via-white to-amber-50/20 rounded-2xl p-4 sm:p-5 border border-amber-100/80 shadow-xs hover:shadow-md transition-all flex-col justify-between overflow-hidden">
+          <!-- Subtle Top Gradient Bar -->
+          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500"></div>
+
           <div>
             <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Total Recorded</span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">All-Time</span>
+              <span class="text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                Total Recorded
+              </span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">All-Time</span>
             </div>
 
             <div class="flex items-baseline gap-1.5 mb-1.5">
@@ -591,7 +613,7 @@ onUnmounted(() => {
               <span class="text-xs text-gray-500 font-medium">souls won</span>
             </div>
 
-            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden my-1.5">
+            <div class="w-full h-2 bg-amber-50/80 rounded-full overflow-hidden my-1.5">
               <div
                 class="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
                 :style="{ width: `${Math.max(clampedAllTimeProgressPercent, summary?.total_souls ? 3 : 0)}%` }"
@@ -605,11 +627,16 @@ onUnmounted(() => {
         </div>
 
         <!-- Card 3: Active Teams & Winners (Desktop only) -->
-        <div class="hidden lg:flex bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-sm flex-col justify-between">
+        <div class="hidden lg:flex relative bg-gradient-to-b from-white via-white to-emerald-50/20 rounded-2xl p-4 sm:p-5 border border-emerald-100/80 shadow-xs hover:shadow-md transition-all flex-col justify-between overflow-hidden">
+          <!-- Subtle Top Gradient Bar -->
+          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-400 via-emerald-500 to-cyan-500"></div>
+
           <div>
             <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Teams & Evangelists</span>
-              <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:underline">Manage Teams →</NuxtLink>
+              <span class="text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                Teams & Evangelists
+              </span>
+              <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">Manage Teams →</NuxtLink>
             </div>
 
             <div class="flex items-baseline gap-2 mb-1.5">
@@ -627,26 +654,45 @@ onUnmounted(() => {
 
       </div>
 
-      <!-- COLLAPSIBLE ANALYTICS SECTION (Toggle button right above Directory) -->
+      <!-- COLLAPSIBLE ANALYTICS TRIGGER (Interactive, clearly actionable card banner) -->
       <div class="mb-4">
-        <!-- Toggle Button -->
         <button
           type="button"
           @click="showAnalytics = !showAnalytics"
-          class="w-full py-2 px-3.5 bg-white hover:bg-gray-50/80 border border-gray-200/80 rounded-xl shadow-sm text-xs font-bold text-gray-700 hover:text-indigo-600 flex items-center justify-between transition-all"
+          class="group w-full p-3 sm:p-3.5 bg-gradient-to-r from-indigo-50/80 via-purple-50/60 to-pink-50/80 hover:from-indigo-100/90 hover:via-purple-100/70 hover:to-pink-100/90 border border-indigo-200/80 hover:border-indigo-300 rounded-2xl shadow-xs hover:shadow-md flex items-center justify-between transition-all duration-200 cursor-pointer"
         >
-          <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <!-- Left: Gradient Icon & Descriptive Text -->
+          <div class="flex items-center gap-3 text-left">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                  Analytics & Leaderboards
+                </span>
+                <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-indigo-700 border border-indigo-200/70 shadow-2xs">
+                  {{ teams.length }} Teams • 5 Statuses
+                </span>
+              </div>
+              <p class="text-[11px] text-gray-500">
+                {{ showAnalytics ? 'Tap to hide detailed analytics & rankings' : 'Tap to view status pipeline, team rankings & top soul winners' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Action Pill -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-indigo-200 text-indigo-700 text-xs font-bold shadow-2xs group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
+            <span>{{ showAnalytics ? 'Collapse' : 'Expand' }}</span>
+            <svg class="w-3.5 h-3.5 transform transition-transform duration-200" :class="{ 'rotate-180': showAnalytics }" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-            <span>{{ showAnalytics ? 'Hide Analytics & Leaderboards' : 'View Analytics, Status Breakdown & Leaderboards' }}</span>
-          </span>
-          <svg class="w-4 h-4 text-gray-400 transform transition-transform duration-200" :class="{ 'rotate-180': showAnalytics }" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          </div>
         </button>
 
-        <!-- Expanded Analytics Content -->
+        <!-- Expanded Analytics Content with subtle background gradient -->
         <transition
           enter-active-class="transition duration-200 ease-out"
           enter-from-class="opacity-0 -translate-y-2"
@@ -655,21 +701,23 @@ onUnmounted(() => {
           leave-from-class="opacity-100 translate-y-0"
           leave-to-class="opacity-0 -translate-y-2"
         >
-          <div v-if="showAnalytics" class="mt-3.5 space-y-4 p-4 bg-gray-50/80 rounded-2xl border border-gray-200/80">
+          <div v-if="showAnalytics" class="mt-3.5 space-y-4 p-4 sm:p-5 bg-gradient-to-b from-indigo-50/40 via-purple-50/20 to-white rounded-2xl border border-indigo-100/80 shadow-sm">
             
             <!-- Mobile-only Stats Cards (Total Recorded & Active Teams) -->
             <div class="sm:hidden grid grid-cols-2 gap-2.5">
-              <!-- Total Souls Card -->
-              <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 block">Total Souls</span>
+              <!-- Total Souls Card with soft amber gradient -->
+              <div class="relative bg-gradient-to-b from-white to-amber-50/30 p-3.5 rounded-xl border border-amber-200/80 shadow-2xs overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-500"></div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">Total Souls</span>
                 <span class="text-xl font-extrabold text-gray-900 mt-1 block">{{ formatNumber(summary?.total_souls || 0) }}</span>
                 <span class="text-[10px] text-gray-400 block mt-0.5">District All-Time</span>
               </div>
 
-              <!-- Active Teams Card -->
-              <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm">
+              <!-- Active Teams Card with soft emerald gradient -->
+              <div class="relative bg-gradient-to-b from-white to-emerald-50/30 p-3.5 rounded-xl border border-emerald-200/80 shadow-2xs overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block">Teams</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Teams</span>
                   <NuxtLink to="/souls/teams" class="text-[10px] font-bold text-indigo-600">Edit →</NuxtLink>
                 </div>
                 <span class="text-xl font-extrabold text-gray-900 mt-1 block">{{ teams.length }}</span>
@@ -677,16 +725,17 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- Status Breakdown (Clean informational cards) -->
+            <!-- Status Breakdown (5 clean informational cards with soft color gradients) -->
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500 block mb-2 px-1">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-gray-600 block mb-2 px-1">
                 Souls Status Breakdown
               </span>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                <!-- 1. New Souls -->
-                <div class="p-3 rounded-xl bg-white border border-gray-200">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                <!-- 1. New Souls (Amber wash) -->
+                <div class="relative p-3 rounded-xl bg-gradient-to-b from-amber-50/60 to-white border border-amber-200/80 shadow-2xs overflow-hidden">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-amber-500"></div>
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-gray-600">New Souls</span>
+                    <span class="text-[11px] font-bold text-amber-800">New Souls</span>
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
@@ -694,10 +743,11 @@ onUnmounted(() => {
                   </p>
                 </div>
 
-                <!-- 2. Contacted -->
-                <div class="p-3 rounded-xl bg-white border border-gray-200">
+                <!-- 2. Contacted (Blue wash) -->
+                <div class="relative p-3 rounded-xl bg-gradient-to-b from-blue-50/60 to-white border border-blue-200/80 shadow-2xs overflow-hidden">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-blue-500"></div>
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-gray-600">Contacted</span>
+                    <span class="text-[11px] font-bold text-blue-800">Contacted</span>
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
@@ -705,10 +755,11 @@ onUnmounted(() => {
                   </p>
                 </div>
 
-                <!-- 3. In Discipleship -->
-                <div class="p-3 rounded-xl bg-white border border-gray-200">
+                <!-- 3. In Discipleship (Purple wash) -->
+                <div class="relative p-3 rounded-xl bg-gradient-to-b from-purple-50/60 to-white border border-purple-200/80 shadow-2xs overflow-hidden">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-purple-500"></div>
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-gray-600">In Discipleship</span>
+                    <span class="text-[11px] font-bold text-purple-800">In Discipleship</span>
                     <span class="w-2 h-2 rounded-full bg-purple-500"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
@@ -716,10 +767,11 @@ onUnmounted(() => {
                   </p>
                 </div>
 
-                <!-- 4. Baptized -->
-                <div class="p-3 rounded-xl bg-white border border-gray-200">
+                <!-- 4. Baptized (Cyan wash) -->
+                <div class="relative p-3 rounded-xl bg-gradient-to-b from-cyan-50/60 to-white border border-cyan-200/80 shadow-2xs overflow-hidden">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-cyan-500"></div>
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-gray-600">Baptized</span>
+                    <span class="text-[11px] font-bold text-cyan-800">Baptized</span>
                     <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
@@ -727,10 +779,11 @@ onUnmounted(() => {
                   </p>
                 </div>
 
-                <!-- 5. Integrated -->
-                <div class="p-3 rounded-xl bg-white border border-gray-200 col-span-2 sm:col-span-1">
+                <!-- 5. Integrated (Emerald wash) -->
+                <div class="relative p-3 rounded-xl bg-gradient-to-b from-emerald-50/60 to-white border border-emerald-200/80 shadow-2xs overflow-hidden col-span-2 sm:col-span-1">
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-emerald-500"></div>
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-gray-600">Integrated</span>
+                    <span class="text-[11px] font-bold text-emerald-800">Integrated</span>
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
@@ -740,15 +793,15 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- Leaderboards (Teams & Winners) -->
+            <!-- Leaderboards (Teams & Winners with subtle top gradient bars) -->
             <div>
-              <!-- Mobile Tab Switcher -->
-              <div class="sm:hidden flex bg-gray-200/80 p-1 rounded-xl mb-3">
+              <!-- Mobile Tab Switcher with gradient styling -->
+              <div class="sm:hidden flex bg-indigo-100/70 p-1 rounded-xl mb-3">
                 <button
                   type="button"
                   @click="mobileLeaderboardTab = 'teams'"
                   class="flex-1 py-1.5 text-xs font-bold rounded-lg transition"
-                  :class="mobileLeaderboardTab === 'teams' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'"
+                  :class="mobileLeaderboardTab === 'teams' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600'"
                 >
                   Team Rankings
                 </button>
@@ -756,7 +809,7 @@ onUnmounted(() => {
                   type="button"
                   @click="mobileLeaderboardTab = 'winners'"
                   class="flex-1 py-1.5 text-xs font-bold rounded-lg transition"
-                  :class="mobileLeaderboardTab === 'winners' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'"
+                  :class="mobileLeaderboardTab === 'winners' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600'"
                 >
                   Top Winners
                 </button>
@@ -766,11 +819,16 @@ onUnmounted(() => {
                 
                 <!-- Team Leaderboard -->
                 <div
-                  class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm"
+                  class="relative bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs overflow-hidden"
                   :class="mobileLeaderboardTab === 'teams' ? 'block' : 'hidden sm:block'"
                 >
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+
                   <div class="flex items-center justify-between mb-3">
-                    <span class="font-bold text-sm text-gray-900">Team Leaderboard</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs">👥</span>
+                      <span class="font-bold text-sm text-gray-900">Team Leaderboard</span>
+                    </div>
                     <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:underline">
                       Manage Teams →
                     </NuxtLink>
@@ -784,15 +842,15 @@ onUnmounted(() => {
                     <div
                       v-for="(team, idx) in summary.team_leaderboard"
                       :key="team.team_id"
-                      class="p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between gap-2 text-xs"
+                      class="p-2.5 rounded-lg bg-gray-50/90 border border-gray-100 flex items-center justify-between gap-2 text-xs hover:border-indigo-200 transition"
                     >
                       <div class="flex items-center gap-2 min-w-0">
                         <span
-                          class="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black shrink-0"
+                          class="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black shrink-0 shadow-2xs"
                           :class="[
-                            idx === 0 ? 'bg-amber-400 text-slate-950' :
-                            idx === 1 ? 'bg-slate-300 text-slate-950' :
-                            idx === 2 ? 'bg-amber-700 text-white' :
+                            idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950' :
+                            idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-300 text-slate-950' :
+                            idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' :
                             'bg-gray-200 text-gray-700'
                           ]"
                         >
@@ -823,11 +881,16 @@ onUnmounted(() => {
 
                 <!-- Top Winners Leaderboard -->
                 <div
-                  class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm"
+                  class="relative bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs overflow-hidden"
                   :class="mobileLeaderboardTab === 'winners' ? 'block' : 'hidden sm:block'"
                 >
+                  <div class="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-600"></div>
+
                   <div class="flex items-center justify-between mb-3">
-                    <span class="font-bold text-sm text-gray-900">Top Soul Winners</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs">🏆</span>
+                      <span class="font-bold text-sm text-gray-900">Top Soul Winners</span>
+                    </div>
                     <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:underline">
                       Manage Winners →
                     </NuxtLink>
@@ -841,15 +904,15 @@ onUnmounted(() => {
                     <div
                       v-for="(winner, idx) in summary.top_winners"
                       :key="winner.winner_id"
-                      class="p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between gap-2 text-xs"
+                      class="p-2.5 rounded-lg bg-gray-50/90 border border-gray-100 flex items-center justify-between gap-2 text-xs hover:border-purple-200 transition"
                     >
                       <div class="flex items-center gap-2 min-w-0">
                         <span
-                          class="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black shrink-0"
+                          class="w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black shrink-0 shadow-2xs"
                           :class="[
-                            idx === 0 ? 'bg-amber-400 text-slate-950' :
-                            idx === 1 ? 'bg-slate-300 text-slate-950' :
-                            idx === 2 ? 'bg-amber-700 text-white' :
+                            idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950' :
+                            idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-300 text-slate-950' :
+                            idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' :
                             'bg-gray-200 text-gray-700'
                           ]"
                         >
@@ -878,13 +941,15 @@ onUnmounted(() => {
       </div>
 
       <!-- SOULS DIRECTORY (Starts directly near top) -->
-      <section class="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 sm:p-6">
-        
+      <section class="relative bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4 sm:p-6 overflow-hidden">
+        <!-- Subtle Top Gradient Bar -->
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600"></div>
+
         <!-- Controls Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h2 class="text-base sm:text-lg font-bold text-gray-900">Souls Directory</h2>
-            <p class="text-xs text-gray-500">Search, filter & manage soul records</p>
+            <p class="text-xs text-gray-500">Search, filter & manage individual soul records</p>
           </div>
 
           <div class="flex items-center gap-2">
@@ -894,7 +959,7 @@ onUnmounted(() => {
                 type="button"
                 :disabled="!!exportingFormat"
                 @click="showExportMenu = !showExportMenu"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-100 transition"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 transition"
               >
                 <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -933,11 +998,11 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- Quick Log Soul CTA -->
+            <!-- Quick Log Soul CTA with gradient -->
             <button
               type="button"
               @click="openAddModal"
-              class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
+              class="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow transition-all"
             >
               <span>+ Add Soul</span>
             </button>
@@ -955,7 +1020,7 @@ onUnmounted(() => {
               v-model="search"
               type="search"
               placeholder="Search name, phone, area..."
-              class="w-full pl-8 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+              class="w-full pl-8 pr-3 py-2 bg-gray-50/80 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             />
           </div>
 
@@ -963,7 +1028,7 @@ onUnmounted(() => {
           <div>
             <select
               v-model="filterTeamId"
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+              class="w-full px-3 py-2 bg-gray-50/80 border border-gray-200 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             >
               <option value="all">All Teams</option>
               <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
@@ -974,7 +1039,7 @@ onUnmounted(() => {
           <div>
             <select
               v-model="filterWinnerId"
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+              class="w-full px-3 py-2 bg-gray-50/80 border border-gray-200 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             >
               <option value="all">All Soul Winners</option>
               <option v-for="w in filterWinnersList" :key="w.id" :value="w.id">{{ w.full_name }}</option>
@@ -985,7 +1050,7 @@ onUnmounted(() => {
           <div>
             <select
               v-model="filterStatus"
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+              class="w-full px-3 py-2 bg-gray-50/80 border border-gray-200 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             >
               <option value="all">All Statuses</option>
               <option v-for="st in statusOptions" :key="st.value" :value="st.value">{{ st.label }}</option>
@@ -998,11 +1063,11 @@ onUnmounted(() => {
           {{ error }}
         </div>
 
-        <!-- Desktop Table View (Hidden on mobile) -->
+        <!-- Desktop Table View with subtle gradient header -->
         <div class="hidden md:block overflow-x-auto rounded-xl border border-gray-200">
           <table class="w-full text-xs text-left">
             <thead>
-              <tr class="bg-gray-50 border-b border-gray-200 font-bold text-gray-600 uppercase tracking-wider text-[11px]">
+              <tr class="bg-gradient-to-r from-indigo-50/60 via-purple-50/40 to-pink-50/30 border-b border-gray-200 font-bold text-gray-600 uppercase tracking-wider text-[11px]">
                 <th class="py-3 px-4">Soul Name</th>
                 <th class="py-3 px-4">Contact</th>
                 <th class="py-3 px-4">Date Won</th>
@@ -1024,12 +1089,12 @@ onUnmounted(() => {
               <tr
                 v-for="soul in souls"
                 :key="soul.id"
-                class="hover:bg-gray-50/80 transition"
+                class="hover:bg-indigo-50/20 transition"
               >
                 <!-- Name & Area -->
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[11px] shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[11px] shrink-0 shadow-2xs">
                       {{ initials(soul.full_name) }}
                     </div>
                     <div>
@@ -1113,12 +1178,12 @@ onUnmounted(() => {
           <div
             v-for="soul in souls"
             :key="soul.id"
-            class="p-3.5 rounded-xl border border-gray-200 bg-white shadow-sm"
+            class="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs hover:shadow-xs transition"
           >
             <!-- Top row: Avatar, Name, Location, Actions -->
             <div class="flex items-start justify-between gap-2 mb-1.5">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-2xs">
                   {{ initials(soul.full_name) }}
                 </div>
                 <div class="min-w-0">
@@ -1200,8 +1265,9 @@ onUnmounted(() => {
     >
       <div class="relative w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl shadow-2xl text-gray-900 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
         
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 shrink-0">
+        <!-- Modal Header with gradient bar -->
+        <div class="relative flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 shrink-0">
+          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-2xl sm:rounded-t-3xl"></div>
           <div>
             <h3 class="font-bold text-base sm:text-lg text-gray-900">
               {{ editingSoulId ? 'Edit Soul Record' : 'Record New Soul' }}
@@ -1335,7 +1401,7 @@ onUnmounted(() => {
                   type="button"
                   :disabled="quickWinnerSaving"
                   @click="handleQuickAddWinner"
-                  class="w-full py-1.5 bg-indigo-600 text-white font-bold text-xs rounded-lg transition disabled:opacity-50"
+                  class="w-full py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs rounded-lg transition disabled:opacity-50 shadow-2xs"
                 >
                   {{ quickWinnerSaving ? 'Saving...' : 'Save Winner' }}
                 </button>
@@ -1375,7 +1441,7 @@ onUnmounted(() => {
             <button
               type="submit"
               :disabled="modalSaving"
-              class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition disabled:opacity-50"
+              class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition disabled:opacity-50"
             >
               {{ modalSaving ? 'Saving...' : (editingSoulId ? 'Update Soul' : 'Record Soul') }}
             </button>
