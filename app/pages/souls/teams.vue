@@ -22,6 +22,9 @@ const {
   deleteWinner
 } = useSoulsTracking()
 
+const { user } = useAuth()
+const isAdmin = computed(() => user.value?.role === 'admin')
+
 const selectedTeamId = ref<string>('')
 const loadingTeams = ref(false)
 const loadingWinners = ref(false)
@@ -271,6 +274,7 @@ onMounted(() => {
               <p class="text-xs text-gray-500">Select a team to view its soul winners</p>
             </div>
             <button
+              v-if="isAdmin"
               type="button"
               @click="openAddTeamModal"
               class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition"
@@ -279,17 +283,27 @@ onMounted(() => {
             </button>
           </div>
 
-          <div v-if="loadingTeams" class="text-center py-12 text-gray-500 text-sm">
-            Loading teams...
+          <!-- Teams Loading Shimmer -->
+          <div v-if="loadingTeams" class="space-y-2.5">
+            <div v-for="i in 4" :key="i" class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 animate-pulse flex items-center justify-between">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <div class="w-3.5 h-3.5 rounded-full bg-gray-200 shrink-0"></div>
+                <div class="space-y-1.5 flex-1">
+                  <div class="h-3.5 bg-gray-200 rounded w-28"></div>
+                  <div class="h-2.5 bg-gray-100 rounded w-20"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div v-else-if="!teams.length" class="text-center py-12 text-gray-500 text-sm">
             <p class="font-bold text-gray-700">No teams created yet</p>
-            <p class="text-xs text-gray-400 mt-1">Create your first team to start assigning soul winners.</p>
+            <p class="text-xs text-gray-400 mt-1">Teams will appear here once created by an admin.</p>
             <button
+              v-if="isAdmin"
               type="button"
               @click="openAddTeamModal"
-              class="mt-3 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl"
+              class="mt-3 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition"
             >
               Create Team
             </button>
@@ -331,7 +345,8 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="flex items-center gap-1 shrink-0" @click.stop>
+              <!-- Admin-Only Edit/Delete Buttons -->
+              <div v-if="isAdmin" class="flex items-center gap-1 shrink-0" @click.stop>
                 <button
                   type="button"
                   @click="openEditTeamModal(team)"
@@ -361,7 +376,7 @@ onMounted(() => {
         <div class="lg:col-span-7 bg-white border border-indigo-100/50 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col h-full">
           
           <div v-if="!selectedTeam" class="text-center py-16 text-gray-400 text-sm">
-            Select or create a team on the left to manage its soul winners.
+            Select or create a team on the left to view its soul winners.
           </div>
 
           <template v-else>
@@ -391,7 +406,9 @@ onMounted(() => {
                 </div>
               </div>
 
+              <!-- Admin-Only Add Winner Button -->
               <button
+                v-if="isAdmin"
                 type="button"
                 @click="openAddWinnerModal"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition"
@@ -403,14 +420,28 @@ onMounted(() => {
               </button>
             </div>
 
+            <!-- Winners Loading Shimmer -->
+            <div v-if="loadingWinners" class="space-y-2.5">
+              <div v-for="i in 4" :key="i" class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 animate-pulse flex items-center justify-between">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <div class="w-10 h-10 rounded-full bg-gray-200 shrink-0"></div>
+                  <div class="space-y-1.5 flex-1">
+                    <div class="h-3.5 bg-gray-200 rounded w-32"></div>
+                    <div class="h-2.5 bg-gray-100 rounded w-20"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Winners List -->
-            <div v-if="!selectedTeamWinners.length" class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-gray-200">
+            <div v-else-if="!selectedTeamWinners.length" class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-gray-200">
               <p class="font-bold text-gray-700">No soul winners in this team yet</p>
-              <p class="text-xs text-gray-400 mt-1">Add individuals to this team so they can be credited with won souls.</p>
+              <p class="text-xs text-gray-400 mt-1">Soul winners will appear here once registered.</p>
               <button
+                v-if="isAdmin"
                 type="button"
                 @click="openAddWinnerModal"
-                class="mt-3 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl"
+                class="mt-3 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition"
               >
                 Add Person
               </button>
@@ -440,7 +471,8 @@ onMounted(() => {
                     <span class="text-[11px] text-gray-500 ml-1">souls</span>
                   </div>
 
-                  <div class="flex items-center gap-1">
+                  <!-- Admin-Only Winner Edit/Delete Buttons -->
+                  <div v-if="isAdmin" class="flex items-center gap-1">
                     <button
                       type="button"
                       @click="openEditWinnerModal(winner)"

@@ -574,16 +574,51 @@ onUnmounted(() => {
               </tr>
             </thead>
             <tbody>
-              <tr v-if="pending">
-                <td colspan="7" class="p-12 text-center font-medium text-gray-500">Loading visitors...</td>
-              </tr>
+              <!-- Shimmer loading skeleton rows -->
+              <template v-if="pending">
+                <tr v-for="i in 5" :key="`adult-skeleton-${i}`" class="border-b border-gray-100 animate-pulse">
+                  <td class="py-4 px-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-11 h-11 rounded-full bg-gray-200 shrink-0"></div>
+                      <div class="space-y-2 flex-1">
+                        <div class="h-4 bg-gray-200 rounded w-32"></div>
+                        <div class="h-3 bg-gray-100 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="space-y-1.5">
+                      <div class="h-3.5 bg-gray-200 rounded w-28"></div>
+                      <div class="h-3 bg-gray-100 rounded w-20"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="h-3.5 bg-gray-200 rounded w-20"></div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="h-3.5 bg-gray-200 rounded w-24"></div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="h-3.5 bg-gray-200 rounded w-20"></div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="h-7 bg-gray-200 rounded-full w-28"></div>
+                  </td>
+                  <td class="py-4 px-4 text-right">
+                    <div class="inline-flex gap-2">
+                      <div class="w-8 h-8 bg-gray-200 rounded-xl"></div>
+                      <div class="w-8 h-8 bg-gray-200 rounded-xl"></div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
               <tr v-else-if="!visitors.length">
                 <td colspan="7" class="p-12 text-center">
                   <p class="font-semibold text-lg text-gray-600">No visitors found</p>
                   <p class="text-sm text-gray-400 mt-1">Log a visitor or share the public registration page.</p>
                 </td>
               </tr>
-              <tr v-for="visitor in sortedVisitors" :key="visitor.id" :id="'visitor-' + visitor.id" class="border-b border-gray-100 hover:bg-gray-50 transition">
+              <tr v-else v-for="visitor in sortedVisitors" :key="visitor.id" :id="'visitor-' + visitor.id" class="border-b border-gray-100 hover:bg-gray-50 transition">
                 <td class="py-4 px-4">
                   <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
@@ -630,7 +665,25 @@ onUnmounted(() => {
         </div>
 
         <div class="md:hidden space-y-3">
-          <div v-if="pending" class="p-8 text-center font-medium text-gray-500">Loading visitors...</div>
+          <!-- Mobile loading skeleton cards -->
+          <template v-if="pending">
+            <div v-for="i in 3" :key="`adult-m-skeleton-${i}`" class="rounded-xl border-2 border-gray-100 bg-white p-4 shadow-sm animate-pulse">
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-full bg-gray-200 shrink-0"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-4 bg-gray-200 rounded w-36"></div>
+                  <div class="h-3 bg-gray-100 rounded w-20"></div>
+                </div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                <div class="h-6 bg-gray-200 rounded-full w-24"></div>
+                <div class="flex gap-1">
+                  <div class="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                  <div class="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                </div>
+              </div>
+            </div>
+          </template>
           <div v-else-if="!visitors.length" class="p-8 text-center rounded-xl border-2 border-gray-200 bg-gray-50">
             <p class="font-semibold text-gray-600">No visitors found</p>
           </div>

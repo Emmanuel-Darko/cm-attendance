@@ -34,6 +34,10 @@ const {
   addWinner
 } = useSoulsTracking()
 
+const { user } = useAuth()
+const isAdmin = computed(() => user.value?.role === 'admin')
+const showAdminOnlyDeleteModal = ref(false)
+
 // Filters
 const search = ref('')
 const filterTeamId = ref('all')
@@ -285,6 +289,14 @@ async function onStatusChange(id: string, newStatus: SoulStatus) {
   } catch (err: any) {
     alert(err?.data?.statusMessage || 'Could not update status.')
   }
+}
+
+function handleDeleteClick(soul: SoulRecord) {
+  if (!isAdmin.value) {
+    showAdminOnlyDeleteModal.value = true
+    return
+  }
+  onRemoveSoul(soul.id)
 }
 
 async function onRemoveSoul(id: string) {
@@ -718,7 +730,7 @@ onUnmounted(() => {
                 <div class="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                 <div class="flex items-center justify-between">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Teams</span>
-                  <NuxtLink to="/souls/teams" class="text-[10px] font-bold text-indigo-600">Edit →</NuxtLink>
+                  <NuxtLink to="/souls/teams" class="text-[10px] font-bold text-indigo-600">View →</NuxtLink>
                 </div>
                 <span class="text-xl font-extrabold text-gray-900 mt-1 block">{{ teams.length }}</span>
                 <span class="text-[10px] text-gray-400 block mt-0.5">{{ winners.length }} winners</span>
@@ -1077,9 +1089,41 @@ onUnmounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white">
-              <tr v-if="loading">
-                <td colspan="6" class="p-8 text-center text-gray-400 font-medium">Loading souls records...</td>
-              </tr>
+              <!-- Loading Shimmer Skeleton Rows -->
+              <template v-if="loading">
+                <tr v-for="i in 5" :key="`table-skeleton-${i}`" class="animate-pulse">
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-8 h-8 rounded-full bg-gray-200 shrink-0"></div>
+                      <div class="space-y-1.5 flex-1">
+                        <div class="h-3.5 bg-gray-200 rounded w-28"></div>
+                        <div class="h-2.5 bg-gray-100 rounded w-16"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="h-3 bg-gray-200 rounded w-20"></div>
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="h-3 bg-gray-200 rounded w-16"></div>
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="space-y-1.5">
+                      <div class="h-3 bg-gray-200 rounded w-24"></div>
+                      <div class="h-2.5 bg-gray-100 rounded-full w-14"></div>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="h-5 bg-gray-200 rounded-full w-20"></div>
+                  </td>
+                  <td class="py-3.5 px-4 text-right">
+                    <div class="inline-flex gap-1">
+                      <div class="w-6 h-6 bg-gray-200 rounded-lg"></div>
+                      <div class="w-6 h-6 bg-gray-200 rounded-lg"></div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
               <tr v-else-if="!souls.length">
                 <td colspan="6" class="p-8 text-center text-gray-400">
                   <p class="font-bold text-sm text-gray-700">No souls found</p>
@@ -1087,6 +1131,7 @@ onUnmounted(() => {
                 </td>
               </tr>
               <tr
+                v-else
                 v-for="soul in souls"
                 :key="soul.id"
                 class="hover:bg-indigo-50/20 transition"
@@ -1153,7 +1198,7 @@ onUnmounted(() => {
                   </button>
                   <button
                     type="button"
-                    @click="onRemoveSoul(soul.id)"
+                    @click="handleDeleteClick(soul)"
                     class="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-gray-100 transition ml-1"
                     title="Delete Soul"
                   >
@@ -1169,53 +1214,72 @@ onUnmounted(() => {
 
         <!-- Mobile Clean Card View (Visible on mobile) -->
         <div class="md:hidden space-y-2.5">
-          <div v-if="loading" class="p-6 text-center text-gray-400 text-xs font-medium">Loading souls...</div>
+          <!-- Mobile Skeleton Shimmer Cards -->
+          <template v-if="loading">
+            <div v-for="i in 3" :key="`mobile-skeleton-${i}`" class="p-3.5 rounded-xl border border-gray-200 bg-white animate-pulse space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2.5 flex-1">
+                  <div class="w-8 h-8 rounded-full bg-gray-200 shrink-0"></div>
+                  <div class="space-y-1.5 flex-1">
+                    <div class="h-3.5 bg-gray-200 rounded w-32"></div>
+                    <div class="h-2.5 bg-gray-100 rounded w-20"></div>
+                  </div>
+                </div>
+                <div class="w-12 h-6 bg-gray-200 rounded"></div>
+              </div>
+              <div class="pt-2 border-t border-gray-100 flex items-center justify-between">
+                <div class="h-3 bg-gray-200 rounded w-28"></div>
+                <div class="h-3 bg-gray-200 rounded w-16"></div>
+              </div>
+            </div>
+          </template>
           <div v-else-if="!souls.length" class="p-6 text-center rounded-xl bg-gray-50 border border-gray-200">
             <p class="font-bold text-gray-700 text-sm">No souls found</p>
             <p class="text-xs text-gray-400 mt-1">Tap "+ Add Soul" to record a new soul.</p>
           </div>
 
-          <div
-            v-for="soul in souls"
-            :key="soul.id"
-            class="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs hover:shadow-xs transition"
-          >
-            <!-- Top row: Avatar, Name, Location, Actions -->
-            <div class="flex items-start justify-between gap-2 mb-1.5">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-2xs">
-                  {{ initials(soul.full_name) }}
+          <template v-else>
+            <div
+              v-for="soul in souls"
+              :key="soul.id"
+              class="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs hover:shadow-xs transition"
+            >
+              <!-- Top row: Avatar, Name, Location, Actions -->
+              <div class="flex items-start justify-between gap-2 mb-1.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-2xs">
+                    {{ initials(soul.full_name) }}
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">{{ soul.full_name }}</h4>
+                    <p class="text-[11px] text-gray-400 truncate">
+                      {{ soul.location || 'No area' }} • {{ soul.date_won }}
+                    </p>
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">{{ soul.full_name }}</h4>
-                  <p class="text-[11px] text-gray-400 truncate">
-                    {{ soul.location || 'No area' }} • {{ soul.date_won }}
-                  </p>
-                </div>
-              </div>
 
-              <!-- Action icons -->
-              <div class="flex items-center gap-0.5 shrink-0">
-                <button
-                  type="button"
-                  @click="openEditModal(soul)"
-                  class="p-1.5 text-gray-500 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  @click="onRemoveSoul(soul.id)"
-                  class="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-gray-100"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <!-- Action icons -->
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button
+                    type="button"
+                    @click="openEditModal(soul)"
+                    class="p-1.5 text-gray-500 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    @click="handleDeleteClick(soul)"
+                    class="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-gray-100"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
 
             <!-- Middle row: Won by & Phone link -->
             <div class="my-2 pt-1.5 border-t border-gray-100 text-xs text-gray-700 flex flex-wrap items-center justify-between gap-1.5">
@@ -1251,6 +1315,7 @@ onUnmounted(() => {
               </select>
             </div>
           </div>
+          </template>
         </div>
 
       </section>
@@ -1447,6 +1512,36 @@ onUnmounted(() => {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- ADMIN ONLY DELETE MODAL (Shown when non-admin tries to delete) -->
+    <div
+      v-if="showAdminOnlyDeleteModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
+      @click.self="showAdminOnlyDeleteModal = false"
+    >
+      <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-5 text-center overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 to-rose-500"></div>
+
+        <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mx-auto mb-3.5">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        <h3 class="font-bold text-base text-gray-900 mb-1.5">Admin Permission Required</h3>
+        <p class="text-xs text-gray-500 leading-relaxed mb-5">
+          Only administrators have permission to delete soul records. Please contact an admin to have this soul record removed.
+        </p>
+
+        <button
+          type="button"
+          @click="showAdminOnlyDeleteModal = false"
+          class="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
+        >
+          Got it
+        </button>
       </div>
     </div>
   </div>
