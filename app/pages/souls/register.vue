@@ -215,7 +215,7 @@ onMounted(async () => {
           </svg>
         </div>
         <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Log Won Soul
+          Record Won Soul
         </h1>
         <p class="mt-1 text-xs sm:text-sm text-gray-600 font-medium">
           Quick field intake for active evangelism & soul winning
@@ -280,7 +280,7 @@ onMounted(async () => {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>Log Another Soul</span>
+            <span>Record Another Soul</span>
           </button>
 
           <NuxtLink

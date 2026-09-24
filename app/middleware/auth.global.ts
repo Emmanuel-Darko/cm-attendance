@@ -1,8 +1,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { user, getUser } = useAuth()
   
-  const publicPages = ['/', '/login', '/adult', '/adult/register', '/cm-launch']
-  const isPublicPage = publicPages.includes(to.path) || to.path.startsWith('/adult') || to.path === '/souls' || to.path.startsWith('/souls/')
+  const publicPages = ['/', '/login', '/adult/register', '/cm-launch']
+  const isPublicPage = publicPages.includes(to.path) || to.path === '/souls' || to.path.startsWith('/souls/')
   const authRequired = !isPublicPage
 
   if (!user.value) {
