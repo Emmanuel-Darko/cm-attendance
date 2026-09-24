@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-100/90 via-indigo-50/40 to-slate-100/80 flex flex-col relative">
+  <div class="min-h-screen bg-gradient-to-b from-indigo-100/80 via-slate-100 to-purple-100/70 flex flex-col relative">
 
     <!-- Colored Header Band -->
     <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 pt-8 pb-16 sm:pt-10 sm:pb-20 relative overflow-hidden">
