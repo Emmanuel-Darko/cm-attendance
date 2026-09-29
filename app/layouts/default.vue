@@ -1,7 +1,8 @@
 <template>
-  <div class="overflow-y-scroll hide-scroll">
+  <div class="overflow-y-scroll hide-scroll pb-16 md:pb-0">
     <ProfileDropdown />
     <slot></slot>
+    <MobileBottomNav />
     <component
       v-if="isVisible"
       v-bind="props"

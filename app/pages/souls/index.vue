@@ -99,6 +99,34 @@ const filterStatus = ref('all')
 const filterDateFrom = ref('')
 const filterDateTo = ref('')
 const filterFollowUp = ref(false)
+const showMobileFilterModal = ref(false)
+
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (filterTeamId.value !== 'all') count++
+  if (filterWinnerId.value !== 'all') count++
+  if (filterStatus.value !== 'all') count++
+  if (filterDateFrom.value) count++
+  if (filterDateTo.value) count++
+  if (filterFollowUp.value) count++
+  return count
+})
+
+function getSoulWhatsAppUrl(soul: SoulRecord): string {
+  if (!soul.phone) return '#'
+  const cleanPhone = soul.phone.replace(/[^0-9]/g, '')
+  const formatted = cleanPhone.startsWith('0') ? '233' + cleanPhone.slice(1) : cleanPhone
+  const msg = encodeURIComponent(`Hello *${soul.full_name}*, greetings in the name of our Lord Jesus! Just reaching out to see how you are doing today. God bless you richly!`)
+  return `https://wa.me/${formatted}?text=${msg}`
+}
+
+function toggleStatusFilter(st: SoulStatus) {
+  if (filterStatus.value === st) {
+    filterStatus.value = 'all'
+  } else {
+    filterStatus.value = st
+  }
+}
 
 // Souls filtered by follow-up toggle (client-side)
 const displaySouls = computed(() => {
@@ -151,9 +179,18 @@ const isModalDuplicatePhone = computed(() => {
   )
 })
 
-// 5 Statuses
+// 5 Statuses — main filter (plural "New Souls")
 const statusOptions: { value: SoulStatus; label: string }[] = [
   { value: 'new', label: 'New Souls' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'in_discipleship', label: 'In discipleship' },
+  { value: 'baptized', label: 'Baptized' },
+  { value: 'integrated', label: 'Integrated' }
+]
+
+// Row-level status options (singular "New Soul")
+const rowStatusOptions: { value: SoulStatus; label: string }[] = [
+  { value: 'new', label: 'New Soul' },
   { value: 'contacted', label: 'Contacted' },
   { value: 'in_discipleship', label: 'In discipleship' },
   { value: 'baptized', label: 'Baptized' },
@@ -598,26 +635,16 @@ onUnmounted(() => {
         </NuxtLink>
 
         <div class="flex items-center gap-2">
-          <!-- Link to Field Recording Page -->
+          <!-- Add Soul Button (Navigates to /souls/register) -->
           <NuxtLink
             to="/souls/register"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs hover:shadow rounded-xl text-xs sm:text-sm font-bold transition-all"
-          >
-            <span class="w-2 h-2 rounded-full bg-white/90 animate-pulse"></span>
-            <span>Field Mode</span>
-          </NuxtLink>
-
-          <!-- Add Soul Button -->
-          <button
-            type="button"
-            @click="openAddModal"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow transition-all"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>Add Soul</span>
-          </button>
+            <span>+ Add Soul</span>
+          </NuxtLink>
         </div>
       </div>
 
@@ -734,7 +761,9 @@ onUnmounted(() => {
               <span class="text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                 Teams & Evangelists
               </span>
-              <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">Manage Teams →</NuxtLink>
+              <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">
+                {{ isAdmin ? 'Manage Teams →' : 'View Teams →' }}
+              </NuxtLink>
             </div>
 
             <div class="flex items-baseline gap-2 mb-1.5">
@@ -830,64 +859,94 @@ onUnmounted(() => {
               </span>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                 <!-- 1. New Souls (Amber wash) -->
-                <div class="relative p-3 rounded-xl bg-gradient-to-b from-amber-50/60 to-white border border-amber-200/80 shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  @click="toggleStatusFilter('new')"
+                  class="relative p-3 rounded-xl bg-gradient-to-b from-amber-50/60 to-white border shadow-2xs overflow-hidden text-left transition-all hover:scale-[1.02] cursor-pointer"
+                  :class="filterStatus === 'new' ? 'border-amber-500 ring-2 ring-amber-400 bg-amber-50/90 shadow-xs' : 'border-amber-200/80 hover:border-amber-300'"
+                >
                   <div class="absolute top-0 inset-x-0 h-0.5 bg-amber-500"></div>
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-amber-800">New Souls</span>
-                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500" :class="{ 'ring-2 ring-amber-400 ring-offset-1': filterStatus === 'new' }"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
                     {{ formatNumber(summary?.status_breakdown?.new || 0) }}
                   </p>
-                </div>
+                  <span v-if="filterStatus === 'new'" class="inline-block text-[9px] font-bold text-amber-700 mt-0.5">Active filter • Click to clear</span>
+                </button>
 
                 <!-- 2. Contacted (Blue wash) -->
-                <div class="relative p-3 rounded-xl bg-gradient-to-b from-blue-50/60 to-white border border-blue-200/80 shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  @click="toggleStatusFilter('contacted')"
+                  class="relative p-3 rounded-xl bg-gradient-to-b from-blue-50/60 to-white border shadow-2xs overflow-hidden text-left transition-all hover:scale-[1.02] cursor-pointer"
+                  :class="filterStatus === 'contacted' ? 'border-blue-500 ring-2 ring-blue-400 bg-blue-50/90 shadow-xs' : 'border-blue-200/80 hover:border-blue-300'"
+                >
                   <div class="absolute top-0 inset-x-0 h-0.5 bg-blue-500"></div>
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-blue-800">Contacted</span>
-                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-blue-500" :class="{ 'ring-2 ring-blue-400 ring-offset-1': filterStatus === 'contacted' }"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
                     {{ formatNumber(summary?.status_breakdown?.contacted || 0) }}
                   </p>
-                </div>
+                  <span v-if="filterStatus === 'contacted'" class="inline-block text-[9px] font-bold text-blue-700 mt-0.5">Active filter • Click to clear</span>
+                </button>
 
                 <!-- 3. In Discipleship (Purple wash) -->
-                <div class="relative p-3 rounded-xl bg-gradient-to-b from-purple-50/60 to-white border border-purple-200/80 shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  @click="toggleStatusFilter('in_discipleship')"
+                  class="relative p-3 rounded-xl bg-gradient-to-b from-purple-50/60 to-white border shadow-2xs overflow-hidden text-left transition-all hover:scale-[1.02] cursor-pointer"
+                  :class="filterStatus === 'in_discipleship' ? 'border-purple-500 ring-2 ring-purple-400 bg-purple-50/90 shadow-xs' : 'border-purple-200/80 hover:border-purple-300'"
+                >
                   <div class="absolute top-0 inset-x-0 h-0.5 bg-purple-500"></div>
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-purple-800">In Discipleship</span>
-                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-purple-500" :class="{ 'ring-2 ring-purple-400 ring-offset-1': filterStatus === 'in_discipleship' }"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
                     {{ formatNumber(summary?.status_breakdown?.in_discipleship || 0) }}
                   </p>
-                </div>
+                  <span v-if="filterStatus === 'in_discipleship'" class="inline-block text-[9px] font-bold text-purple-700 mt-0.5">Active filter • Click to clear</span>
+                </button>
 
                 <!-- 4. Baptized (Cyan wash) -->
-                <div class="relative p-3 rounded-xl bg-gradient-to-b from-cyan-50/60 to-white border border-cyan-200/80 shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  @click="toggleStatusFilter('baptized')"
+                  class="relative p-3 rounded-xl bg-gradient-to-b from-cyan-50/60 to-white border shadow-2xs overflow-hidden text-left transition-all hover:scale-[1.02] cursor-pointer"
+                  :class="filterStatus === 'baptized' ? 'border-cyan-500 ring-2 ring-cyan-400 bg-cyan-50/90 shadow-xs' : 'border-cyan-200/80 hover:border-cyan-300'"
+                >
                   <div class="absolute top-0 inset-x-0 h-0.5 bg-cyan-500"></div>
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-cyan-800">Baptized</span>
-                    <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-cyan-500" :class="{ 'ring-2 ring-cyan-400 ring-offset-1': filterStatus === 'baptized' }"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
                     {{ formatNumber(summary?.status_breakdown?.baptized || 0) }}
                   </p>
-                </div>
+                  <span v-if="filterStatus === 'baptized'" class="inline-block text-[9px] font-bold text-cyan-700 mt-0.5">Active filter • Click to clear</span>
+                </button>
 
                 <!-- 5. Integrated (Emerald wash) -->
-                <div class="relative p-3 rounded-xl bg-gradient-to-b from-emerald-50/60 to-white border border-emerald-200/80 shadow-2xs overflow-hidden col-span-2 sm:col-span-1">
+                <button
+                  type="button"
+                  @click="toggleStatusFilter('integrated')"
+                  class="relative p-3 rounded-xl bg-gradient-to-b from-emerald-50/60 to-white border shadow-2xs overflow-hidden text-left transition-all hover:scale-[1.02] cursor-pointer col-span-2 sm:col-span-1"
+                  :class="filterStatus === 'integrated' ? 'border-emerald-500 ring-2 ring-emerald-400 bg-emerald-50/90 shadow-xs' : 'border-emerald-200/80 hover:border-emerald-300'"
+                >
                   <div class="absolute top-0 inset-x-0 h-0.5 bg-emerald-500"></div>
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-emerald-800">Integrated</span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500" :class="{ 'ring-2 ring-emerald-400 ring-offset-1': filterStatus === 'integrated' }"></span>
                   </div>
                   <p class="text-xl font-black text-gray-900 mt-1">
                     {{ formatNumber(summary?.status_breakdown?.integrated || 0) }}
                   </p>
-                </div>
+                  <span v-if="filterStatus === 'integrated'" class="inline-block text-[9px] font-bold text-emerald-700 mt-0.5">Active filter • Click to clear</span>
+                </button>
               </div>
             </div>
 
@@ -928,7 +987,7 @@ onUnmounted(() => {
                       <span class="font-bold text-sm text-gray-900">Team Leaderboard</span>
                     </div>
                     <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:underline">
-                      Manage Teams →
+                      {{ isAdmin ? 'Manage Teams →' : 'View Teams →' }}
                     </NuxtLink>
                   </div>
 
@@ -990,7 +1049,7 @@ onUnmounted(() => {
                       <span class="font-bold text-sm text-gray-900">Top Soul Winners</span>
                     </div>
                     <NuxtLink to="/souls/teams" class="text-xs font-bold text-indigo-600 hover:underline">
-                      Manage Winners →
+                      {{ isAdmin ? 'Manage Winners →' : 'View Winners →' }}
                     </NuxtLink>
                   </div>
 
@@ -1107,8 +1166,81 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Filter Controls -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+        <!-- Mobile Search & Filter Bar (Mobile only: sm:hidden) -->
+        <div class="sm:hidden mb-3.5 space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                v-model="search"
+                type="search"
+                placeholder="Search name, phone, area..."
+                class="w-full pl-8 pr-3 py-2 bg-gray-50/90 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+              />
+            </div>
+            <!-- Filter Sheet Trigger Button -->
+            <button
+              type="button"
+              @click="showMobileFilterModal = true"
+              class="relative px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition shrink-0"
+              :class="activeFiltersCount > 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <span>Filter</span>
+              <span
+                v-if="activeFiltersCount > 0"
+                class="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] flex items-center justify-center font-bold"
+              >
+                {{ activeFiltersCount }}
+              </span>
+            </button>
+          </div>
+
+          <!-- Active Filter Pills (Horizontal Scrollable on mobile) -->
+          <div v-if="activeFiltersCount > 0" class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] hide-scroll">
+            <span
+              v-if="filterTeamId !== 'all'"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0 font-medium"
+            >
+              Team: {{ teams.find(t => t.id === filterTeamId)?.name || 'Selected' }}
+              <button @click="filterTeamId = 'all'" class="hover:text-indigo-900 font-bold ml-0.5">✕</button>
+            </span>
+            <span
+              v-if="filterWinnerId !== 'all'"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 shrink-0 font-medium"
+            >
+              Winner: {{ filterWinnersList.find(w => w.id === filterWinnerId)?.full_name || 'Selected' }}
+              <button @click="filterWinnerId = 'all'" class="hover:text-purple-900 font-bold ml-0.5">✕</button>
+            </span>
+            <span
+              v-if="filterStatus !== 'all'"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0 font-medium"
+            >
+              Status: {{ statusOptions.find(s => s.value === filterStatus)?.label || filterStatus }}
+              <button @click="filterStatus = 'all'" class="hover:text-amber-900 font-bold ml-0.5">✕</button>
+            </span>
+            <span
+              v-if="filterFollowUp"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 shrink-0 font-medium"
+            >
+              ⚠️ Needs Follow-up
+              <button @click="filterFollowUp = false" class="hover:text-orange-900 font-bold ml-0.5">✕</button>
+            </span>
+            <button
+              @click="resetFilters"
+              class="text-[10px] text-gray-500 hover:text-gray-800 underline shrink-0 font-semibold px-1"
+            >
+              Clear all
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop Filter Controls (Tablets & Desktops: sm:grid) -->
+        <div class="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
           <!-- Search input -->
           <div class="relative sm:col-span-2 lg:col-span-1">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1154,6 +1286,45 @@ onUnmounted(() => {
               <option v-for="st in statusOptions" :key="st.value" :value="st.value">{{ st.label }}</option>
             </select>
           </div>
+        </div>
+
+        <!-- Desktop Active Filter Pills -->
+        <div v-if="activeFiltersCount > 0" class="hidden sm:flex items-center gap-2 mb-4 flex-wrap text-xs">
+          <span class="text-xs font-bold text-gray-500 mr-1">Active filters:</span>
+          <span
+            v-if="filterTeamId !== 'all'"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium"
+          >
+            Team: {{ teams.find(t => t.id === filterTeamId)?.name || 'Selected' }}
+            <button @click="filterTeamId = 'all'" class="hover:text-indigo-900 font-bold ml-1">✕</button>
+          </span>
+          <span
+            v-if="filterWinnerId !== 'all'"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium"
+          >
+            Winner: {{ filterWinnersList.find(w => w.id === filterWinnerId)?.full_name || 'Selected' }}
+            <button @click="filterWinnerId = 'all'" class="hover:text-purple-900 font-bold ml-1">✕</button>
+          </span>
+          <span
+            v-if="filterStatus !== 'all'"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium"
+          >
+            Status: {{ statusOptions.find(s => s.value === filterStatus)?.label || filterStatus }}
+            <button @click="filterStatus = 'all'" class="hover:text-amber-900 font-bold ml-1">✕</button>
+          </span>
+          <span
+            v-if="filterFollowUp"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200 font-medium"
+          >
+            ⚠️ Needs Follow-up
+            <button @click="filterFollowUp = false" class="hover:text-orange-900 font-bold ml-1">✕</button>
+          </span>
+          <button
+            @click="resetFilters"
+            class="text-xs text-gray-500 hover:text-indigo-600 underline font-semibold ml-1 cursor-pointer"
+          >
+            Clear all
+          </button>
         </div>
 
         <!-- Urgent Follow-up Alert Banner -->
@@ -1280,7 +1451,26 @@ onUnmounted(() => {
 
                 <!-- Contact -->
                 <td class="py-3 px-4 text-gray-600">
-                  {{ soul.phone || '-' }}
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-medium text-gray-800">{{ soul.phone || '-' }}</span>
+                    <template v-if="soul.phone">
+                      <a
+                        :href="getSoulWhatsAppUrl(soul)"
+                        target="_blank"
+                        class="p-1 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 transition"
+                        title="Chat on WhatsApp"
+                      >
+                        <span class="text-xs">💬</span>
+                      </a>
+                      <a
+                        :href="`tel:${soul.phone}`"
+                        class="p-1 text-indigo-600 hover:text-indigo-800 rounded-lg hover:bg-indigo-50 transition"
+                        title="Call"
+                      >
+                        <span class="text-xs">📞</span>
+                      </a>
+                    </template>
+                  </div>
                 </td>
 
                 <!-- Date Won -->
@@ -1314,7 +1504,7 @@ onUnmounted(() => {
                     class="rounded-full border px-2.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer"
                     :class="statusStyles[soul.status]?.badge || 'text-gray-700'"
                   >
-                    <option v-for="st in statusOptions" :key="st.value" :value="st.value">
+                    <option v-for="st in rowStatusOptions" :key="st.value" :value="st.value">
                       {{ st.label }}
                     </option>
                   </select>
@@ -1458,14 +1648,25 @@ onUnmounted(() => {
                   {{ soul.team_name }}
                 </span>
               </div>
-              <a
-                v-if="soul.phone"
-                :href="`tel:${soul.phone}`"
-                class="text-indigo-600 hover:underline flex items-center gap-1 font-medium text-[11px]"
-              >
-                <span>📞</span>
-                <span>{{ soul.phone }}</span>
-              </a>
+              <div v-if="soul.phone" class="flex items-center gap-1.5 shrink-0">
+                <a
+                  :href="getSoulWhatsAppUrl(soul)"
+                  target="_blank"
+                  class="text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold text-[10px] transition"
+                  title="Send WhatsApp message"
+                >
+                  <span>💬</span>
+                  <span>WhatsApp</span>
+                </a>
+                <a
+                  :href="`tel:${soul.phone}`"
+                  class="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold text-[10px] transition"
+                  title="Call phone"
+                >
+                  <span>📞</span>
+                  <span>Call</span>
+                </a>
+              </div>
             </div>
 
             <!-- Bottom row: Status selector -->
@@ -1477,7 +1678,7 @@ onUnmounted(() => {
                 class="rounded-full border px-2.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
                 :class="statusStyles[soul.status]?.badge || 'text-gray-700'"
               >
-                <option v-for="st in statusOptions" :key="st.value" :value="st.value">
+                <option v-for="st in rowStatusOptions" :key="st.value" :value="st.value">
                   {{ st.label }}
                 </option>
               </select>
@@ -1582,7 +1783,7 @@ onUnmounted(() => {
                   v-model="soulForm.status"
                   class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
                 >
-                  <option v-for="st in statusOptions" :key="st.value" :value="st.value">{{ st.label }}</option>
+                  <option v-for="st in rowStatusOptions" :key="st.value" :value="st.value">{{ st.label }}</option>
                 </select>
               </div>
             </div>
@@ -1772,10 +1973,141 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <!-- Mobile Floating Action Button (FAB) for + Add Soul -->
+    <button
+      type="button"
+      @click="openAddModal"
+      class="fixed right-4 bottom-18 z-30 md:hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-lg shadow-indigo-500/30 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold active:scale-95 transition-all"
+      aria-label="Add New Soul"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Add Soul</span>
+    </button>
+
+    <!-- Mobile Filter Bottom Sheet -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-200 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-150 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showMobileFilterModal"
+          class="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs sm:hidden"
+          @click="showMobileFilterModal = false"
+        ></div>
+      </Transition>
+
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-y-full"
+        enter-to-class="translate-y-0"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="translate-y-0"
+        leave-to-class="translate-y-full"
+      >
+        <div
+          v-if="showMobileFilterModal"
+          class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl border-t border-gray-200 shadow-2xl p-5 sm:hidden space-y-4 max-h-[85vh] overflow-y-auto"
+          style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);"
+        >
+          <div class="flex justify-center -mt-2 mb-1">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+          </div>
+
+          <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-gray-900">Filter Souls</span>
+              <span v-if="activeFiltersCount > 0" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                {{ activeFiltersCount }} active
+              </span>
+            </div>
+            <button
+              type="button"
+              @click="resetFilters(); showMobileFilterModal = false"
+              class="text-xs font-semibold text-gray-500 hover:text-indigo-600 underline"
+            >
+              Reset All
+            </button>
+          </div>
+
+          <!-- Filter options -->
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Team</label>
+              <select
+                v-model="filterTeamId"
+                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="all">All Teams</option>
+                <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Soul Winner</label>
+              <select
+                v-model="filterWinnerId"
+                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="all">All Soul Winners</option>
+                <option v-for="w in filterWinnersList" :key="w.id" :value="w.id">{{ w.full_name }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Status</label>
+              <select
+                v-model="filterStatus"
+                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="all">All Statuses</option>
+                <option v-for="st in statusOptions" :key="st.value" :value="st.value">{{ st.label }}</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">From Date</label>
+                <input
+                  v-model="filterDateFrom"
+                  type="date"
+                  class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">To Date</label>
+                <input
+                  v-model="filterDateTo"
+                  type="date"
+                  class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+            <button
+              type="button"
+              @click="showMobileFilterModal = false"
+              class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl text-xs shadow-xs hover:shadow transition"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Toast Notification -->
     <div
       v-if="toastMessage"
-      class="fixed bottom-5 right-5 z-50 px-4 py-3 bg-gray-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-gray-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
+      class="fixed bottom-20 sm:bottom-5 right-5 z-50 px-4 py-3 bg-gray-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-gray-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
     >
       <span>✅</span>
       <span>{{ toastMessage }}</span>

@@ -1,6 +1,7 @@
 <template>
-  <div>
+  <div class="pb-16 md:pb-0 min-h-screen">
     <slot />
+    <MobileBottomNav />
   </div>
 </template>
 

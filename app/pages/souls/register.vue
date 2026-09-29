@@ -225,7 +225,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 px-3 py-6 sm:px-6 sm:py-10 text-gray-900">
+  <div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 px-3 pt-6 pb-24 sm:px-6 sm:py-10 text-gray-900">
     <div class="mx-auto w-full max-w-2xl">
       
       <!-- Top Navigation -->
@@ -240,9 +240,11 @@ onMounted(async () => {
           <span>Souls Dashboard</span>
         </NuxtLink>
 
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 border border-amber-300 rounded-full text-amber-800 text-[11px] font-bold uppercase tracking-wider">
-          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-          Active Field Mode
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 backdrop-blur-md border border-indigo-200/80 rounded-full text-indigo-700 text-xs font-bold shadow-2xs">
+          <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Direct Soul Intake</span>
         </span>
       </div>
 
@@ -361,7 +363,7 @@ onMounted(async () => {
               <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Evangelist / Winner Identity
+              Evangelist Identity
             </span>
             <span class="text-[10px] text-gray-500">Auto-saved on device</span>
           </div>

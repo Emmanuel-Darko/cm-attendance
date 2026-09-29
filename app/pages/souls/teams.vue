@@ -143,7 +143,9 @@ const selectedTeam = computed(() => {
 
 const selectedTeamWinners = computed(() => {
   if (!selectedTeam.value) return []
-  return winners.value.filter((w) => w.team_id === selectedTeam.value.id)
+  return winners.value
+    .filter((w) => w.team_id === selectedTeam.value.id)
+    .sort((a, b) => (b.soul_count || 0) - (a.soul_count || 0))
 })
 
 function colorBadgeClass(color: string = 'amber'): string {
@@ -344,14 +346,14 @@ onMounted(() => {
           Teams & Soul Winners Directory
         </h1>
         <p class="text-sm text-gray-600 mt-1">
-          Manage teams, assign soul winners, and share direct outreach logging links for field evangelism.
+          {{ isAdmin ? 'Manage teams, assign soul winners, and share direct outreach logging links for field evangelism.' : 'View district teams, soul winners rankings, and share direct outreach logging links for field evangelism.' }}
         </p>
       </div>
 
       <!-- Toast Notification -->
       <div
         v-if="toastMessage"
-        class="fixed bottom-5 right-5 z-50 px-4 py-3 bg-gray-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-gray-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
+        class="fixed bottom-20 sm:bottom-5 right-5 z-50 px-4 py-3 bg-gray-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-gray-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
       >
         <span>✅</span>
         <span>{{ toastMessage }}</span>
@@ -543,6 +545,14 @@ onMounted(() => {
               </button>
             </div>
 
+            <!-- Automatic Winner Creation Info Notice -->
+            <div class="mb-3.5 p-3 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center gap-2.5 text-xs text-indigo-900 shadow-2xs">
+              <span class="text-sm shrink-0">ℹ️</span>
+              <p class="leading-relaxed">
+                Soul winners will be automatically added to their team when they win at least 1 soul.
+              </p>
+            </div>
+
             <!-- Winners Loading Shimmer -->
             <div v-if="loadingWinners" class="space-y-2.5">
               <div v-for="i in 4" :key="i" class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 animate-pulse flex items-center justify-between">
@@ -559,7 +569,7 @@ onMounted(() => {
             <!-- Winners List -->
             <div v-else-if="!selectedTeamWinners.length" class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-gray-200">
               <p class="font-bold text-gray-700">No soul winners in this team yet</p>
-              <p class="text-xs text-gray-400 mt-1">Soul winners will appear here once registered.</p>
+              <p class="text-xs text-gray-400 mt-1">Soul winners will be automatically added when they win at least 1 soul, or an admin can add them manually.</p>
               <button
                 v-if="isAdmin"
                 type="button"
