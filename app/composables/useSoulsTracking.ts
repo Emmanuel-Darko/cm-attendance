@@ -344,6 +344,40 @@ export const useSoulsTracking = () => {
     }
   }
 
+  // Targets (Admin only)
+  const updateTargets = async (payload: { monthly_target?: number; target_count?: number; project_title?: string }) => {
+    error.value = null
+    try {
+      const updated = await $fetch<{ monthly_target: number; target_count: number; project_title: string }>('/api/souls/targets', {
+        method: 'PATCH',
+        body: payload
+      })
+      if (summary.value) {
+        if (updated.monthly_target) summary.value.monthly_target = updated.monthly_target
+        if (updated.target_count) summary.value.target = updated.target_count
+        if (updated.project_title) summary.value.project_title = updated.project_title
+      }
+      return updated
+    } catch (err: any) {
+      error.value = err?.data?.statusMessage || 'Could not update targets.'
+      throw err
+    }
+  }
+
+  // Promote soul to Adult Visitor directory (Admin only)
+  const promoteSoulToVisitor = async (id: string) => {
+    error.value = null
+    try {
+      const result = await $fetch(`/api/souls/${id}/promote`, {
+        method: 'POST'
+      })
+      return result
+    } catch (err: any) {
+      error.value = err?.data?.statusMessage || 'Could not promote soul.'
+      throw err
+    }
+  }
+
   return {
     souls,
     teams,
@@ -368,6 +402,8 @@ export const useSoulsTracking = () => {
     fetchWinners,
     addWinner,
     updateWinner,
-    deleteWinner
+    deleteWinner,
+    updateTargets,
+    promoteSoulToVisitor
   }
 }

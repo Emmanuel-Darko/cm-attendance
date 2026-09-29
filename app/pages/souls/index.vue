@@ -31,12 +31,61 @@ const {
   deleteSoul,
   fetchTeams,
   fetchWinners,
-  addWinner
+  addWinner,
+  promoteSoulToVisitor
 } = useSoulsTracking()
 
 const { user } = useAuth()
 const isAdmin = computed(() => user.value?.role === 'admin')
 const showAdminOnlyDeleteModal = ref(false)
+
+// Toast notification
+const toastMessage = ref<string | null>(null)
+let toastTimer: any = null
+function showToast(msg: string) {
+  toastMessage.value = msg
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastMessage.value = null
+  }, 3000)
+}
+
+// Manual Soul Promotion (Admin only)
+const showPromoteModal = ref(false)
+const soulToPromote = ref<SoulRecord | null>(null)
+const promoteSaving = ref(false)
+const promoteError = ref<string | null>(null)
+
+function openPromoteModal(soul: SoulRecord) {
+  soulToPromote.value = soul
+  promoteError.value = null
+  showPromoteModal.value = true
+}
+
+async function confirmPromoteSoul() {
+  if (!soulToPromote.value) return
+  promoteSaving.value = true
+  promoteError.value = null
+  try {
+    await promoteSoulToVisitor(soulToPromote.value.id)
+    showPromoteModal.value = false
+    showToast(`Successfully promoted ${soulToPromote.value.full_name} to Adult Visitors directory!`)
+    await refresh()
+  } catch (err: any) {
+    promoteError.value = err?.data?.statusMessage || 'Could not promote soul.'
+  } finally {
+    promoteSaving.value = false
+  }
+}
+
+// Stale soul follow-up helper (>7 days in 'new' status)
+function isStaleNewSoul(soul: SoulRecord): boolean {
+  if (soul.status !== 'new' || !soul.date_won) return false
+  const wonDate = new Date(soul.date_won)
+  if (isNaN(wonDate.getTime())) return false
+  const diffDays = Math.floor((Date.now() - wonDate.getTime()) / (1000 * 60 * 60 * 24))
+  return diffDays >= 7
+}
 
 // Filters
 const search = ref('')
@@ -80,6 +129,16 @@ const soulForm = ref<SoulInput>({
   notes: ''
 })
 const selectedFormTeamId = ref<string>('')
+
+// Modal duplicate phone check
+const isModalDuplicatePhone = computed(() => {
+  if (!soulForm.value.phone) return false
+  const clean = soulForm.value.phone.replace(/[^0-9]/g, '')
+  if (clean.length < 8) return false
+  return souls.value.some(
+    (s) => s.id !== editingSoulId.value && s.phone && s.phone.replace(/[^0-9]/g, '') === clean
+  )
+})
 
 // 5 Statuses
 const statusOptions: { value: SoulStatus; label: string }[] = [
@@ -144,6 +203,18 @@ const monthlyRemaining = computed(() => {
   const target = summary.value?.monthly_target || 75
   const count = summary.value?.monthly_souls || 0
   return Math.max(0, target - count)
+})
+
+// Clean, simple pacing projection
+const monthlyPacingText = computed(() => {
+  const now = new Date()
+  const currentDay = Math.max(1, now.getDate())
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const count = summary.value?.monthly_souls || 0
+  const target = summary.value?.monthly_target || 75
+  if (count >= target) return 'Target met 🎉'
+  const projected = Math.round((count / currentDay) * daysInMonth)
+  return `Pacing: ~${projected} souls`
 })
 
 const selectedMonth = ref<string>('')
@@ -600,9 +671,12 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <p class="text-[11px] text-gray-500 mt-1 font-medium">
-            {{ monthlyRemaining > 0 ? `${monthlyRemaining} more souls needed this month` : '🎉 Monthly target achieved!' }}
-          </p>
+          <div class="mt-1 flex items-center justify-between text-[11px] font-medium text-gray-500">
+            <span>{{ monthlyRemaining > 0 ? `${monthlyRemaining} more souls needed` : '🎉 Monthly target achieved!' }}</span>
+            <span v-if="monthlyRemaining > 0" class="text-indigo-600 font-semibold text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded-md">
+              {{ monthlyPacingText }}
+            </span>
+          </div>
         </div>
 
         <!-- Card 2: Total Recorded (Desktop & Tablet only) -->
@@ -1156,7 +1230,14 @@ onUnmounted(() => {
 
                 <!-- Date Won -->
                 <td class="py-3 px-4 text-gray-600 font-medium">
-                  {{ soul.date_won }}
+                  <div>{{ soul.date_won }}</div>
+                  <span
+                    v-if="isStaleNewSoul(soul)"
+                    class="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-full mt-0.5"
+                    title="Soul recorded >7 days ago without follow-up"
+                  >
+                    ⚠️ Follow-up
+                  </span>
                 </td>
 
                 <!-- Winner & Team -->
@@ -1186,6 +1267,18 @@ onUnmounted(() => {
 
                 <!-- Actions -->
                 <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <!-- Admin Manual Promote Button for Integrated Souls -->
+                  <button
+                    v-if="isAdmin && soul.status === 'integrated'"
+                    type="button"
+                    @click="openPromoteModal(soul)"
+                    class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 transition mr-0.5"
+                    title="Promote to Adult Visitors Directory"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                  </button>
                   <button
                     type="button"
                     @click="openEditModal(soul)"
@@ -1252,14 +1345,32 @@ onUnmounted(() => {
                   </div>
                   <div class="min-w-0">
                     <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">{{ soul.full_name }}</h4>
-                    <p class="text-[11px] text-gray-400 truncate">
-                      {{ soul.location || 'No area' }} • {{ soul.date_won }}
+                    <p class="text-[11px] text-gray-400 truncate flex items-center gap-1">
+                      <span>{{ soul.location || 'No area' }} • {{ soul.date_won }}</span>
+                      <span
+                        v-if="isStaleNewSoul(soul)"
+                        class="inline-block text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.2 rounded"
+                      >
+                        ⚠️ Follow-up
+                      </span>
                     </p>
                   </div>
                 </div>
 
                 <!-- Action icons -->
                 <div class="flex items-center gap-0.5 shrink-0">
+                  <!-- Admin Promote Button (Mobile) -->
+                  <button
+                    v-if="isAdmin && soul.status === 'integrated'"
+                    type="button"
+                    @click="openPromoteModal(soul)"
+                    class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50"
+                    title="Promote to Adult Visitors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                  </button>
                   <button
                     type="button"
                     @click="openEditModal(soul)"
@@ -1382,6 +1493,9 @@ onUnmounted(() => {
                   placeholder="e.g. 024 123 4567"
                   class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
                 />
+                <p v-if="isModalDuplicatePhone" class="text-[10px] text-amber-600 font-medium mt-1">
+                  ℹ️ Notice: A soul with this phone number is already recorded.
+                </p>
               </div>
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Area / Location</label>
@@ -1544,6 +1658,70 @@ onUnmounted(() => {
           Got it
         </button>
       </div>
+    </div>
+
+    <!-- ADMIN MANUAL PROMOTE MODAL -->
+    <div
+      v-if="showPromoteModal && soulToPromote"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
+      @click.self="showPromoteModal = false"
+    >
+      <div class="relative w-full max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-gray-900">Promote to Adult Visitors</h3>
+            <p class="text-xs text-gray-500">Integrate into the church directory</p>
+          </div>
+        </div>
+
+        <div v-if="promoteError" class="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+          {{ promoteError }}
+        </div>
+
+        <p class="text-xs sm:text-sm text-gray-600 mb-4 leading-relaxed">
+          Are you sure you want to promote <strong class="text-gray-900">{{ soulToPromote.full_name }}</strong> to the <strong>Adult Visitors & Members directory</strong>? This will create an active visitor profile for pastoral follow-up and discipleship.
+        </p>
+
+        <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-600 space-y-1 mb-5">
+          <p><span class="font-bold text-gray-700">Phone:</span> {{ soulToPromote.phone || 'None' }}</p>
+          <p><span class="font-bold text-gray-700">Area:</span> {{ soulToPromote.location || 'None' }}</p>
+          <p><span class="font-bold text-gray-700">Won By:</span> {{ soulToPromote.won_by_name }} ({{ soulToPromote.team_name }})</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            @click="showPromoteModal = false"
+            class="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            :disabled="promoteSaving"
+            @click="confirmPromoteSoul"
+            class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <span>{{ promoteSaving ? 'Promoting...' : 'Confirm Promotion' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div
+      v-if="toastMessage"
+      class="fixed bottom-5 right-5 z-50 px-4 py-3 bg-gray-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-gray-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
+    >
+      <span>✅</span>
+      <span>{{ toastMessage }}</span>
     </div>
   </div>
 </template>

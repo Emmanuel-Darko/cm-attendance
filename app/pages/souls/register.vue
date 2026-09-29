@@ -15,11 +15,15 @@ useHead({
   title: "Field Soul Logging — Chairman's 800,000 Souls Project"
 })
 
+const route = useRoute()
+
 const {
   teams,
   winners,
+  souls,
   fetchTeams,
   fetchWinners,
+  fetchSouls,
   addWinner,
   addSoul
 } = useSoulsTracking()
@@ -39,6 +43,22 @@ const selectedTeamId = ref<string>('')
 const submitting = ref(false)
 const error = ref<string | null>(null)
 const submittedSoul = ref<SoulRecord | null>(null)
+
+// Soft duplicate phone warning
+const isDuplicatePhone = computed(() => {
+  if (!form.value.phone) return false
+  const clean = form.value.phone.replace(/[^0-9]/g, '')
+  if (clean.length < 8) return false
+  return souls.value.some((s) => s.phone && s.phone.replace(/[^0-9]/g, '') === clean)
+})
+
+function getWhatsAppWelcomeUrl(soul: SoulRecord) {
+  if (!soul.phone) return '#'
+  const cleanPhone = soul.phone.replace(/[^0-9]/g, '')
+  const formatted = cleanPhone.startsWith('0') ? '233' + cleanPhone.slice(1) : cleanPhone
+  const msg = encodeURIComponent(`Hello ${soul.full_name}, it was wonderful meeting and praying with you today! We are so glad for the decision you made. May God bless and guide you richly!`)
+  return `https://wa.me/${formatted}?text=${msg}`
+}
 
 // Quick add winner sub-form
 const showQuickAddWinner = ref(false)
@@ -174,7 +194,22 @@ function logAnother() {
 }
 
 onMounted(async () => {
-  await Promise.all([fetchTeams(), fetchWinners()])
+  await Promise.all([fetchTeams(), fetchWinners(), fetchSouls().catch(() => {})])
+
+  // Check URL query parameters first (e.g. ?team_id=...&winner_id=...)
+  const queryTeamId = typeof route.query.team_id === 'string' ? route.query.team_id : null
+  const queryWinnerId = typeof route.query.winner_id === 'string' ? route.query.winner_id : null
+
+  if (queryTeamId && teams.value.some((t) => t.id === queryTeamId)) {
+    selectedTeamId.value = queryTeamId
+    localStorage.setItem('field_soul_team_id', queryTeamId)
+
+    if (queryWinnerId && winners.value.some((w) => w.id === queryWinnerId && w.team_id === queryTeamId)) {
+      form.value.won_by = queryWinnerId
+      localStorage.setItem('field_soul_winner_id', queryWinnerId)
+      return
+    }
+  }
 
   // Restore saved team & winner from localStorage only if explicitly saved previously
   const savedTeamId = localStorage.getItem('field_soul_team_id')
@@ -275,24 +310,37 @@ onMounted(async () => {
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row gap-3">
-          <button
-            type="button"
-            @click="logAnother"
-            class="flex-1 py-3.5 px-6 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 text-sm sm:text-base"
+        <div class="space-y-3">
+          <!-- WhatsApp 1-Click Welcome Message Button -->
+          <a
+            v-if="submittedSoul.phone"
+            :href="getWhatsAppWelcomeUrl(submittedSoul)"
+            target="_blank"
+            class="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Record Another Soul</span>
-          </button>
+            <span>💬</span>
+            <span>Send Welcome WhatsApp to {{ submittedSoul.full_name }}</span>
+          </a>
 
-          <NuxtLink
-            to="/souls"
-            class="py-3.5 px-6 bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-700 hover:text-indigo-600 font-bold rounded-xl transition text-sm sm:text-base flex items-center justify-center gap-2"
-          >
-            <span>View Dashboard</span>
-          </NuxtLink>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              @click="logAnother"
+              class="flex-1 py-3.5 px-6 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Record Another Soul</span>
+            </button>
+
+            <NuxtLink
+              to="/souls"
+              class="py-3.5 px-6 bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-700 hover:text-indigo-600 font-bold rounded-xl transition text-sm sm:text-base flex items-center justify-center gap-2"
+            >
+              <span>View Dashboard</span>
+            </NuxtLink>
+          </div>
         </div>
       </div>
 
@@ -422,6 +470,9 @@ onMounted(async () => {
               placeholder="e.g. 024 123 4567"
               class="w-full px-3.5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-medium"
             />
+            <p v-if="isDuplicatePhone" class="text-[11px] text-amber-600 font-semibold mt-1 flex items-center gap-1">
+              <span>ℹ️</span> Notice: A soul with this phone number was previously recorded.
+            </p>
           </div>
 
           <div>

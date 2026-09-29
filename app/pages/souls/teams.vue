@@ -12,6 +12,8 @@ useHead({
 const {
   teams,
   winners,
+  summary,
+  fetchSummary,
   fetchTeams,
   addTeam,
   updateTeam,
@@ -19,7 +21,8 @@ const {
   fetchWinners,
   addWinner,
   updateWinner,
-  deleteWinner
+  deleteWinner,
+  updateTargets
 } = useSoulsTracking()
 
 const { user } = useAuth()
@@ -29,6 +32,82 @@ const selectedTeamId = ref<string>('')
 const loadingTeams = ref(false)
 const loadingWinners = ref(false)
 const generalError = ref<string | null>(null)
+const toastMessage = ref<string | null>(null)
+let toastTimer: any = null
+
+function showToast(msg: string) {
+  toastMessage.value = msg
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastMessage.value = null
+  }, 3000)
+}
+
+function copyToClipboard(text: string, successLabel: string) {
+  if (navigator?.clipboard) {
+    navigator.clipboard.writeText(text)
+    showToast(successLabel)
+  } else {
+    prompt('Copy this link:', text)
+  }
+}
+
+function getTeamOutreachUrl(teamId: string) {
+  if (typeof window === 'undefined') return `/souls/register?team_id=${teamId}`
+  return `${window.location.origin}/souls/register?team_id=${teamId}`
+}
+
+function getWinnerOutreachUrl(teamId: string, winnerId: string) {
+  if (typeof window === 'undefined') return `/souls/register?team_id=${teamId}&winner_id=${winnerId}`
+  return `${window.location.origin}/souls/register?team_id=${teamId}&winner_id=${winnerId}`
+}
+
+function shareTeamWhatsApp(team: SoulTeamItem) {
+  const url = getTeamOutreachUrl(team.id)
+  const text = encodeURIComponent(`Hi! Here is the direct link to log souls won for team *${team.name}*: \n${url}`)
+  window.open(`https://wa.me/?text=${text}`, '_blank')
+}
+
+function shareWinnerWhatsApp(winner: SoulWinnerItem, teamName: string) {
+  const url = getWinnerOutreachUrl(winner.team_id, winner.id)
+  const text = encodeURIComponent(`Hi *${winner.full_name}*! Here is your personal link to log souls won for *${teamName}*: \n${url}`)
+  window.open(`https://wa.me/?text=${text}`, '_blank')
+}
+
+// Target Settings Modal (Admin only)
+const showTargetModal = ref(false)
+const monthlyTargetInput = ref(75)
+const overallTargetInput = ref(800000)
+const targetSaving = ref(false)
+const targetModalError = ref<string | null>(null)
+
+function openTargetModal() {
+  monthlyTargetInput.value = summary.value?.monthly_target || 75
+  overallTargetInput.value = summary.value?.target || 800000
+  targetModalError.value = null
+  showTargetModal.value = true
+}
+
+async function saveTargets() {
+  targetModalError.value = null
+  if (!monthlyTargetInput.value || monthlyTargetInput.value < 1) {
+    targetModalError.value = 'Please enter a valid monthly target.'
+    return
+  }
+  targetSaving.value = true
+  try {
+    await updateTargets({
+      monthly_target: monthlyTargetInput.value,
+      target_count: overallTargetInput.value
+    })
+    showTargetModal.value = false
+    showToast('Targets updated successfully.')
+  } catch (err: any) {
+    targetModalError.value = err?.data?.statusMessage || 'Could not update targets.'
+  } finally {
+    targetSaving.value = false
+  }
+}
 
 // Team Modals
 const showTeamModal = ref(false)
@@ -213,7 +292,7 @@ async function refreshData() {
   loadingTeams.value = true
   loadingWinners.value = true
   try {
-    await Promise.all([fetchTeams(), fetchWinners()])
+    await Promise.all([fetchTeams(), fetchWinners(), fetchSummary().catch(() => {})])
     if (!selectedTeamId.value && teams.value.length > 0) {
       selectedTeamId.value = teams.value[0].id
     }
@@ -245,6 +324,18 @@ onMounted(() => {
           </svg>
           <span class="font-medium text-sm">Back to Souls Dashboard</span>
         </NuxtLink>
+
+        <!-- Admin Project Targets Configuration Button -->
+        <button
+          v-if="isAdmin"
+          type="button"
+          @click="openTargetModal"
+          class="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold text-gray-700 shadow-2xs hover:shadow-xs transition"
+          title="Configure District & Project Targets"
+        >
+          <span>🎯</span>
+          <span>Project Targets</span>
+        </button>
       </div>
 
       <!-- Page Title -->
@@ -253,8 +344,17 @@ onMounted(() => {
           Teams & Soul Winners Directory
         </h1>
         <p class="text-sm text-gray-600 mt-1">
-          Manage the teams participating in the Chairman's 800,000 Souls Project and the soul winners assigned to each.
+          Manage teams, assign soul winners, and share direct outreach logging links for field evangelism.
         </p>
+      </div>
+
+      <!-- Toast Notification -->
+      <div
+        v-if="toastMessage"
+        class="fixed bottom-5 right-5 z-50 px-4 py-3 bg-gray-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-gray-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
+      >
+        <span>✅</span>
+        <span>{{ toastMessage }}</span>
       </div>
 
       <!-- Global Alert -->
@@ -345,28 +445,51 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Admin-Only Edit/Delete Buttons -->
-              <div v-if="isAdmin" class="flex items-center gap-1 shrink-0" @click.stop>
+              <!-- Actions (Share, Edit, Delete) -->
+              <div class="flex items-center gap-1 shrink-0" @click.stop>
+                <!-- Share Link & WhatsApp for Team -->
                 <button
                   type="button"
-                  @click="openEditTeamModal(team)"
-                  class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition"
-                  title="Edit team"
+                  @click="copyToClipboard(getTeamOutreachUrl(team.id), `Link for ${team.name} copied!`)"
+                  class="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition"
+                  title="Copy team outreach link"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </button>
                 <button
                   type="button"
-                  @click="handleRemoveTeam(team)"
-                  class="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition"
-                  title="Delete team"
+                  @click="shareTeamWhatsApp(team)"
+                  class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                  title="Share team link on WhatsApp"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <span class="text-xs">💬</span>
                 </button>
+
+                <!-- Admin-Only Edit/Delete Buttons -->
+                <template v-if="isAdmin">
+                  <button
+                    type="button"
+                    @click="openEditTeamModal(team)"
+                    class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition ml-0.5"
+                    title="Edit team"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    @click="handleRemoveTeam(team)"
+                    class="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition"
+                    title="Delete team"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </template>
               </div>
             </div>
           </div>
@@ -463,7 +586,7 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <div class="flex items-center gap-4 shrink-0">
+                <div class="flex items-center gap-3 shrink-0">
                   <div class="text-right">
                     <span class="font-extrabold text-indigo-600 text-sm sm:text-base">
                       {{ (winner.soul_count || 0).toLocaleString() }}
@@ -471,12 +594,32 @@ onMounted(() => {
                     <span class="text-[11px] text-gray-500 ml-1">souls</span>
                   </div>
 
+                  <!-- Share Personal Link -->
+                  <button
+                    type="button"
+                    @click="copyToClipboard(getWinnerOutreachUrl(winner.team_id, winner.id), `Link for ${winner.full_name} copied!`)"
+                    class="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-200/60 rounded-lg transition"
+                    title="Copy personal evangelism link"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    @click="shareWinnerWhatsApp(winner, selectedTeam.name)"
+                    class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                    title="Share personal link via WhatsApp"
+                  >
+                    <span class="text-xs">💬</span>
+                  </button>
+
                   <!-- Admin-Only Winner Edit/Delete Buttons -->
-                  <div v-if="isAdmin" class="flex items-center gap-1">
+                  <template v-if="isAdmin">
                     <button
                       type="button"
                       @click="openEditWinnerModal(winner)"
-                      class="p-2 text-indigo-600 hover:bg-indigo-100 rounded-xl transition"
+                      class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition"
                       title="Edit winner"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -486,14 +629,14 @@ onMounted(() => {
                     <button
                       type="button"
                       @click="handleRemoveWinner(winner)"
-                      class="p-2 text-red-600 hover:bg-red-100 rounded-xl transition"
+                      class="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition"
                       title="Delete winner"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
-                  </div>
+                  </template>
                 </div>
               </div>
             </div>
@@ -656,6 +799,76 @@ onMounted(() => {
               class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl text-xs sm:text-sm transition disabled:opacity-60 shadow-md"
             >
               {{ winnerSaving ? 'Saving...' : editingWinnerId ? 'Update Winner' : 'Add Winner' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TARGET GOALS MODAL (Admin Only) -->
+    <div
+      v-if="showTargetModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-gray-950/60 backdrop-blur-sm overflow-hidden"
+      @click.self="showTargetModal = false"
+    >
+      <div class="relative w-full max-w-md bg-white border border-gray-100 rounded-2xl sm:rounded-3xl shadow-2xl text-gray-900 flex flex-col max-h-[90vh] overflow-hidden my-auto">
+        <div class="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 shrink-0">
+          <div>
+            <h3 class="font-bold text-base sm:text-lg text-gray-900">Project & District Targets</h3>
+            <p class="text-xs text-gray-500">Configure evangelism goals for your district and church</p>
+          </div>
+          <button type="button" @click="showTargetModal = false" class="p-1 text-gray-400 hover:text-gray-700 rounded-lg">✕</button>
+        </div>
+
+        <form @submit.prevent="saveTargets" class="flex flex-col flex-1 overflow-hidden min-h-0">
+          <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 overscroll-contain">
+            <div v-if="targetModalError" class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-medium text-red-700">
+              {{ targetModalError }}
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-700 mb-1">
+                District Monthly Souls Target <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model.number="monthlyTargetInput"
+                type="number"
+                min="1"
+                required
+                class="w-full px-3.5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-semibold"
+              />
+              <p class="text-[11px] text-gray-500 mt-1">Default monthly goal for this district/assembly (e.g. 75).</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-700 mb-1">
+                Overall Church-wide Project Target
+              </label>
+              <input
+                v-model.number="overallTargetInput"
+                type="number"
+                min="1"
+                required
+                class="w-full px-3.5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-semibold"
+              />
+              <p class="text-[11px] text-gray-500 mt-1">Chairman's national/global goal (e.g. 800,000).</p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 p-4 border-t border-gray-100 bg-gray-50/70 shrink-0">
+            <button
+              type="button"
+              @click="showTargetModal = false"
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              :disabled="targetSaving"
+              class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl text-xs sm:text-sm transition disabled:opacity-60 shadow-md"
+            >
+              {{ targetSaving ? 'Saving...' : 'Save Targets' }}
             </button>
           </div>
         </form>
