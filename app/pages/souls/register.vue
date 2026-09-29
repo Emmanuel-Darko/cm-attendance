@@ -56,7 +56,7 @@ function getWhatsAppWelcomeUrl(soul: SoulRecord) {
   if (!soul.phone) return '#'
   const cleanPhone = soul.phone.replace(/[^0-9]/g, '')
   const formatted = cleanPhone.startsWith('0') ? '233' + cleanPhone.slice(1) : cleanPhone
-  const msg = encodeURIComponent(`Hello ${soul.full_name}, it was wonderful meeting and praying with you today! We are so glad for the decision you made. May God bless and guide you richly!`)
+  const msg = encodeURIComponent(`Hello *${soul.full_name}*, it was wonderful meeting and praying with you today! We are so glad for the decision you made. May God bless and guide you richly!`)
   return `https://wa.me/${formatted}?text=${msg}`
 }
 

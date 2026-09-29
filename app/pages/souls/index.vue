@@ -87,6 +87,10 @@ function isStaleNewSoul(soul: SoulRecord): boolean {
   return diffDays >= 7
 }
 
+const staleSoulsCount = computed(() => {
+  return souls.value.filter((s) => isStaleNewSoul(s)).length
+})
+
 // Filters
 const search = ref('')
 const filterTeamId = ref('all')
@@ -1144,6 +1148,32 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <!-- Urgent Follow-up Alert Banner (Visible on both mobile & desktop when stale souls exist) -->
+        <div
+          v-if="staleSoulsCount > 0"
+          class="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-xl flex items-center justify-between gap-2.5 shadow-2xs"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shrink-0 font-bold">⚠️</span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-amber-900 truncate">
+                {{ staleSoulsCount }} soul{{ staleSoulsCount > 1 ? 's require' : ' requires' }} follow-up
+              </p>
+              <p class="text-[11px] text-amber-700 truncate">
+                Recorded >7 days ago and still marked as 'New Souls'
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="filterStatus = filterStatus === 'new' ? 'all' : 'new'"
+            class="px-2.5 py-1 text-xs font-bold rounded-lg border transition shrink-0"
+            :class="filterStatus === 'new' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-amber-800 border-amber-300 hover:bg-amber-100/60'"
+          >
+            {{ filterStatus === 'new' ? 'Show All' : 'Filter New' }}
+          </button>
+        </div>
+
         <!-- Global Error Alert -->
         <div v-if="error" class="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 text-xs font-medium text-red-700">
           {{ error }}
@@ -1343,16 +1373,18 @@ onUnmounted(() => {
                   <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-2xs">
                     {{ initials(soul.full_name) }}
                   </div>
-                  <div class="min-w-0">
-                    <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">{{ soul.full_name }}</h4>
-                    <p class="text-[11px] text-gray-400 truncate flex items-center gap-1">
-                      <span>{{ soul.location || 'No area' }} • {{ soul.date_won }}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <h4 class="font-bold text-gray-900 text-xs sm:text-sm">{{ soul.full_name }}</h4>
                       <span
                         v-if="isStaleNewSoul(soul)"
-                        class="inline-block text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.2 rounded"
+                        class="inline-flex items-center gap-0.5 text-[9px] font-extrabold text-amber-800 bg-amber-100 border border-amber-300/80 px-1.5 py-0.5 rounded-full shrink-0"
                       >
                         ⚠️ Follow-up
                       </span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 truncate mt-0.5">
+                      {{ soul.location || 'No area' }} • {{ soul.date_won }}
                     </p>
                   </div>
                 </div>
