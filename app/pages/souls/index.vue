@@ -98,6 +98,13 @@ const filterWinnerId = ref('all')
 const filterStatus = ref('all')
 const filterDateFrom = ref('')
 const filterDateTo = ref('')
+const filterFollowUp = ref(false)
+
+// Souls filtered by follow-up toggle (client-side)
+const displaySouls = computed(() => {
+  if (!filterFollowUp.value) return souls.value
+  return souls.value.filter((s) => isStaleNewSoul(s))
+})
 
 // Analytics collapsible toggle
 const showAnalytics = ref(false)
@@ -406,6 +413,7 @@ function resetFilters() {
   filterStatus.value = 'all'
   filterDateFrom.value = ''
   filterDateTo.value = ''
+  filterFollowUp.value = false
   refresh()
 }
 
@@ -1148,16 +1156,24 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Urgent Follow-up Alert Banner (Visible on both mobile & desktop when stale souls exist) -->
+        <!-- Urgent Follow-up Alert Banner -->
         <div
-          v-if="staleSoulsCount > 0"
-          class="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-xl flex items-center justify-between gap-2.5 shadow-2xs"
+          v-if="staleSoulsCount > 0 || filterFollowUp"
+          class="mb-4 p-3 rounded-xl flex items-center justify-between gap-2.5 shadow-2xs"
+          :class="filterFollowUp
+            ? 'bg-amber-100/80 border border-amber-300'
+            : 'bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90'"
         >
           <div class="flex items-center gap-2.5 min-w-0">
             <span class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shrink-0 font-bold">⚠️</span>
             <div class="min-w-0">
               <p class="text-xs font-bold text-amber-900 truncate">
-                {{ staleSoulsCount }} soul{{ staleSoulsCount > 1 ? 's require' : ' requires' }} follow-up
+                <template v-if="filterFollowUp">
+                  Showing {{ staleSoulsCount }} soul{{ staleSoulsCount !== 1 ? 's' : '' }} needing follow-up
+                </template>
+                <template v-else>
+                  {{ staleSoulsCount }} soul{{ staleSoulsCount > 1 ? 's require' : ' requires' }} follow-up
+                </template>
               </p>
               <p class="text-[11px] text-amber-700 truncate">
                 Recorded >7 days ago and still marked as 'New Souls'
@@ -1165,12 +1181,21 @@ onUnmounted(() => {
             </div>
           </div>
           <button
+            v-if="filterFollowUp"
             type="button"
-            @click="filterStatus = filterStatus === 'new' ? 'all' : 'new'"
-            class="px-2.5 py-1 text-xs font-bold rounded-lg border transition shrink-0"
-            :class="filterStatus === 'new' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-amber-800 border-amber-300 hover:bg-amber-100/60'"
+            @click="filterFollowUp = false"
+            class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-white text-amber-800 border-amber-300 hover:bg-amber-50 transition shrink-0 flex items-center gap-1"
           >
-            {{ filterStatus === 'new' ? 'Show All' : 'Filter New' }}
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            Clear
+          </button>
+          <button
+            v-else
+            type="button"
+            @click="filterFollowUp = true"
+            class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-white text-amber-800 border-amber-300 hover:bg-amber-100/60 transition shrink-0"
+          >
+            View All
           </button>
         </div>
 
@@ -1228,15 +1253,15 @@ onUnmounted(() => {
                   </td>
                 </tr>
               </template>
-              <tr v-else-if="!souls.length">
+              <tr v-else-if="!displaySouls.length">
                 <td colspan="6" class="p-8 text-center text-gray-400">
-                  <p class="font-bold text-sm text-gray-700">No souls found</p>
-                  <p class="text-xs text-gray-400 mt-1">Try adjusting your filters or click "+ Add Soul".</p>
+                  <p class="font-bold text-sm text-gray-700">{{ filterFollowUp ? 'No souls needing follow-up' : 'No souls found' }}</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ filterFollowUp ? 'All souls are on track — great work!' : 'Try adjusting your filters or click "+ Add Soul".' }}</p>
                 </td>
               </tr>
               <tr
                 v-else
-                v-for="soul in souls"
+                v-for="soul in displaySouls"
                 :key="soul.id"
                 class="hover:bg-indigo-50/20 transition"
               >
@@ -1356,14 +1381,14 @@ onUnmounted(() => {
               </div>
             </div>
           </template>
-          <div v-else-if="!souls.length" class="p-6 text-center rounded-xl bg-gray-50 border border-gray-200">
-            <p class="font-bold text-gray-700 text-sm">No souls found</p>
-            <p class="text-xs text-gray-400 mt-1">Tap "+ Add Soul" to record a new soul.</p>
+          <div v-else-if="!displaySouls.length" class="p-6 text-center rounded-xl bg-gray-50 border border-gray-200">
+            <p class="font-bold text-gray-700 text-sm">{{ filterFollowUp ? 'No souls needing follow-up' : 'No souls found' }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ filterFollowUp ? 'All souls are on track — great work!' : 'Tap "+ Add Soul" to record a new soul.' }}</p>
           </div>
 
           <template v-else>
             <div
-              v-for="soul in souls"
+              v-for="soul in displaySouls"
               :key="soul.id"
               class="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs hover:shadow-xs transition"
             >
