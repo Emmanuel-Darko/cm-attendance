@@ -125,7 +125,7 @@ const statusStyles: Record<SoulStatus, { badge: string; dot: string; text: strin
 
 // Available winners in form filtered by selected form team
 const formWinners = computed(() => {
-  if (!selectedFormTeamId.value) return winners.value
+  if (!selectedFormTeamId.value) return []
   return winners.value.filter((w) => w.team_id === selectedFormTeamId.value)
 })
 
@@ -182,10 +182,7 @@ function openAddModal() {
     won_by: '',
     notes: ''
   }
-  selectedFormTeamId.value = teams.value.length > 0 ? teams.value[0].id : ''
-  if (formWinners.value.length > 0) {
-    soulForm.value.won_by = formWinners.value[0].id
-  }
+  selectedFormTeamId.value = ''
   showSoulModal.value = true
 }
 
@@ -215,8 +212,7 @@ function openEditModal(soul: SoulRecord) {
 function onFormTeamChange() {
   const currentWinner = winners.value.find((w) => w.id === soulForm.value.won_by)
   if (!currentWinner || currentWinner.team_id !== selectedFormTeamId.value) {
-    const firstMatchingWinner = formWinners.value[0]
-    soulForm.value.won_by = firstMatchingWinner ? firstMatchingWinner.id : ''
+    soulForm.value.won_by = ''
   }
 }
 
@@ -253,6 +249,10 @@ async function submitSoulForm() {
   modalError.value = null
   if (!soulForm.value.full_name.trim()) {
     modalError.value = 'Soul full name is required.'
+    return
+  }
+  if (!selectedFormTeamId.value) {
+    modalError.value = 'Please select a team.'
     return
   }
   if (!soulForm.value.won_by) {
@@ -1475,9 +1475,10 @@ onUnmounted(() => {
               <select
                 v-model="soulForm.won_by"
                 required
-                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+                :disabled="!selectedFormTeamId"
+                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <option value="" disabled>Select Soul Winner</option>
+                <option value="" disabled>{{ selectedFormTeamId ? 'Select Soul Winner' : 'Select Team First' }}</option>
                 <option v-for="w in formWinners" :key="w.id" :value="w.id">{{ w.full_name }}</option>
               </select>
             </div>

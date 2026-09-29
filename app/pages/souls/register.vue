@@ -56,7 +56,7 @@ const statusOptions: { value: SoulStatus; label: string }[] = [
 ]
 
 const formWinners = computed(() => {
-  if (!selectedTeamId.value) return winners.value
+  if (!selectedTeamId.value) return []
   return winners.value.filter((w) => w.team_id === selectedTeamId.value)
 })
 
@@ -69,20 +69,24 @@ const selectedTeam = computed(() => {
 })
 
 function onTeamChange() {
-  localStorage.setItem('field_soul_team_id', selectedTeamId.value)
+  if (selectedTeamId.value) {
+    localStorage.setItem('field_soul_team_id', selectedTeamId.value)
+  } else {
+    localStorage.removeItem('field_soul_team_id')
+  }
+
   const currentWinner = winners.value.find((w) => w.id === form.value.won_by)
   if (!currentWinner || currentWinner.team_id !== selectedTeamId.value) {
-    const firstMatchingWinner = formWinners.value[0]
-    form.value.won_by = firstMatchingWinner ? firstMatchingWinner.id : ''
-    if (form.value.won_by) {
-      localStorage.setItem('field_soul_winner_id', form.value.won_by)
-    }
+    form.value.won_by = ''
+    localStorage.removeItem('field_soul_winner_id')
   }
 }
 
 function onWinnerChange() {
   if (form.value.won_by) {
     localStorage.setItem('field_soul_winner_id', form.value.won_by)
+  } else {
+    localStorage.removeItem('field_soul_winner_id')
   }
 }
 
@@ -119,13 +123,18 @@ async function handleQuickAddWinner() {
 async function submitSoul() {
   error.value = null
 
-  if (!form.value.full_name.trim()) {
-    error.value = 'Soul full name is required.'
+  if (!selectedTeamId.value) {
+    error.value = 'Please select your team.'
     return
   }
 
   if (!form.value.won_by) {
-    error.value = 'Please select the soul winner who won this soul.'
+    error.value = 'Please select your name / soul winner.'
+    return
+  }
+
+  if (!form.value.full_name.trim()) {
+    error.value = 'Soul full name is required.'
     return
   }
 
@@ -167,20 +176,15 @@ function logAnother() {
 onMounted(async () => {
   await Promise.all([fetchTeams(), fetchWinners()])
 
-  // Restore saved team & winner from localStorage if available
+  // Restore saved team & winner from localStorage only if explicitly saved previously
   const savedTeamId = localStorage.getItem('field_soul_team_id')
   const savedWinnerId = localStorage.getItem('field_soul_winner_id')
 
   if (savedTeamId && teams.value.some((t) => t.id === savedTeamId)) {
     selectedTeamId.value = savedTeamId
-  } else if (teams.value.length > 0) {
-    selectedTeamId.value = teams.value[0].id
-  }
-
-  if (savedWinnerId && winners.value.some((w) => w.id === savedWinnerId && w.team_id === selectedTeamId.value)) {
-    form.value.won_by = savedWinnerId
-  } else if (formWinners.value.length > 0) {
-    form.value.won_by = formWinners.value[0].id
+    if (savedWinnerId && winners.value.some((w) => w.id === savedWinnerId && w.team_id === savedTeamId)) {
+      form.value.won_by = savedWinnerId
+    }
   }
 })
 </script>
@@ -381,9 +385,10 @@ onMounted(async () => {
                 v-model="form.won_by"
                 @change="onWinnerChange"
                 required
-                class="w-full px-3.5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                :disabled="!selectedTeamId"
+                class="w-full px-3.5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <option value="" disabled>Select your name</option>
+                <option value="" disabled>{{ selectedTeamId ? 'Select your name' : 'Select your team first' }}</option>
                 <option v-for="w in formWinners" :key="w.id" :value="w.id">
                   {{ w.full_name }}
                 </option>
