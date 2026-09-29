@@ -316,7 +316,7 @@ onMounted(() => {
     <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pt-4 sm:pt-6 md:pt-8">
       
       <!-- Top Navigation -->
-      <div class="flex items-center justify-between gap-3 mb-6 pr-16 sm:pr-0">
+      <div class="flex items-center justify-between gap-3 mb-6">
         <NuxtLink
           to="/souls"
           class="group inline-flex items-center gap-2 px-3.5 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-gray-700 hover:text-indigo-600 border border-gray-100"
@@ -546,7 +546,7 @@ onMounted(() => {
             </div>
 
             <!-- Automatic Winner Creation Info Notice -->
-            <div class="mb-3.5 p-3 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center gap-2.5 text-xs text-indigo-900 shadow-2xs">
+            <div v-if="!isAdmin" class="mb-3.5 p-3 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center gap-2.5 text-xs text-indigo-900 shadow-2xs">
               <span class="text-sm shrink-0">ℹ️</span>
               <p class="leading-relaxed">
                 Soul winners will be automatically added to their team when they win at least 1 soul.
